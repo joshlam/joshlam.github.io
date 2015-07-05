@@ -1,10 +1,14 @@
-var path = require('path'),
+var ExtractTextPlugin = require("extract-text-webpack-plugin"),
+    path = require('path'),
     webpack = require('webpack');
 
 module.exports = {
   target: 'web',
   entry: {
-    index: './app/scripts/index'
+    index: [
+      './app/styles/index.scss',
+      './app/scripts/index'
+    ]
   },
   output: {
     path: path.join(
@@ -14,9 +18,15 @@ module.exports = {
     filename: '[name].js',
     sourcePrefix: ''
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'false'))
+    }),
+    new ExtractTextPlugin('[name].css')
+  ],
   resolve: {
     root: [
-      path.resolve(__dirname, 'app')
+      path.resolve(__dirname, 'app/scripts')
     ],
     alias: {
       'z-component': 'z-component/src/z-component.js'
@@ -29,8 +39,34 @@ module.exports = {
     loaders: [
       {
         test: /\.js$/,
-        exclude: /node_modules\/(?!z-component)/,
-        loaders: ['babel-loader?' + JSON.stringify({optional: ['spec.protoToAssign']})]
+        exclude: /node_modules\/(?!eventable\/|z-component\/|z-model\/)/,
+        loaders: [
+          'babel-loader?' + JSON.stringify({
+            optional: ['spec.protoToAssign'],
+            plugins: ['object-assign']
+          })
+        ]
+      },
+      {
+        test: /\.s?css$/,
+        exclude: /node_modules\//,
+        loader: ExtractTextPlugin.extract('style-loader', [
+          'css-loader',
+          'autoprefixer-loader?' + JSON.stringify({
+            browsers: ['> 1%'],
+            cascade: false
+          }),
+          'sass-loader?' + JSON.stringify({
+            includePaths: [
+              path.resolve(__dirname, 'app/images')
+            ]
+          })
+        ].join('!'))
+      },
+      {
+        test: /\.(gif|svg)$/,
+        exclude: /node_modules/,
+        loader: 'url-loader'
       }
     ]
   }
