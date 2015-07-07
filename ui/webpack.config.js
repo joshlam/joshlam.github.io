@@ -16,6 +16,8 @@ module.exports = {
       '..'
     ),
     filename: '[name].js',
+    library: 'JoshLam',
+    libraryTarget: 'umd',
     sourcePrefix: ''
   },
   plugins: [
