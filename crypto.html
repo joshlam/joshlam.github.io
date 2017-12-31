@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Crypto</title>
+  <style>
+    a:visited {
+      color: blue;
+    }
+
+    .higher {
+      color: red !important;
+    }
+
+    .lower {
+      color: green !important;
+    }
+
+    .levelOne {
+      color: orange;
+    }
+
+    .levelTwo {
+      color: red;
+    }
+
+    .levelThree {
+      color: green;
+    }
+
+    .crypto {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="warning">
+    WARNING: Make sure to check the status of the wallet on each exchange before trading. Deposits or withdrawals may be suspended. Also be sure to check the number of buy orders on the exchange you are moving assets into. There may only be a few orders for the price that is being shown.
+  </div>
+  <table class="crypto">
+    <tr>
+      <th>Currency</th>
+      <th>Bittrex</th>
+      <th>Binance</th>
+      <th>Difference</th>
+    </tr>
+  </table>
+  <script>
+    const CRYPTO = [
+      'ADA',
+      'ADX',
+      'ARK',
+      'BAT',
+      'BCH',
+      'BNT',
+      'BTG',
+      'DASH',
+      'DGD',
+      'DNT',
+      'ENG',
+      'ETC',
+      'ETH',
+      'FUN',
+      'KMD',
+      'LSK',
+      'LTC',
+      'LUN',
+      'MANA',
+      'MCO',
+      'MTL',
+      'NAV',
+      'NEO',
+      'OMG',
+      'POWR',
+      'QTUM',
+      'RCN',
+      'SALT',
+      'SNT',
+      'STORJ',
+      'STRAT',
+      'TRIG',
+      'VIB',
+      'WAVES',
+      'WINGS',
+      'XLM',
+      'XMR',
+      'XRP',
+      'XVG',
+      'XZC',
+      'ZEC'
+    ];
+
+    const MISSING = [
+      'LUN',
+      'NAV',
+      'TRIG',
+      'WAVES',
+      'WINGS'
+    ];
+
+    const BINANCE = CRYPTO.filter(currency => !MISSING.includes(currency));
+
+    const COINMARKETCAP = {
+      ADA: 'cardano',
+      ADX: 'adx-net',
+      ARK: 'ark',
+      BAT: 'basic-attention-token',
+      BCH: 'bitcoin-cash',
+      BNT: 'bancor',
+      BTG: 'bitcoin-gold',
+      DASH: 'dash',
+      DGD: 'digixdao',
+      DNT: 'district0x',
+      ENG: 'enigma-project',
+      ETC: 'ethereum-classic',
+      ETH: 'ethereum',
+      FUN: 'funfair',
+      KMD: 'komodo',
+      LSK: 'lisk',
+      LTC: 'litecoin',
+      LUN: 'lunyr',
+      MANA: 'decentraland',
+      MCO: 'monaco',
+      MTL: 'metal',
+      NAV: 'nav-coin',
+      NEO: 'neo',
+      OMG: 'omisego',
+      POWR: 'power-ledger',
+      QTUM: 'qtum',
+      RCN: 'ripio-credit-network',
+      SALT: 'salt',
+      SNT: 'status',
+      STORJ: 'storj',
+      STRAT: 'stratis',
+      TRIG: 'triggers',
+      VIB: 'viberate',
+      WAVES: 'waves',
+      WINGS: 'wings',
+      XLM: 'stellar',
+      XMR: 'monero',
+      XRP: 'ripple',
+      XVG: 'verge',
+      XZC: 'zcoin',
+      ZEC: 'zcash'
+    };
+
+    const CRYPTOCOMPARE = { BCH: 'BCC' };
+
+    const table = document.querySelector('.crypto');
+
+    CRYPTO.forEach(currency => {
+      const row = document.createElement('tr');
+
+      row.classList.add(currency);
+
+      const exchangeName = CRYPTOCOMPARE[currency] ? CRYPTOCOMPARE[currency] : currency;
+
+      row.innerHTML = `
+        <td class="currency"><a target="_blank" href="https://coinmarketcap.com/currencies/${COINMARKETCAP[currency]}">${currency}</a></td>
+        <td class="bittrex"><a target="_blank" href="https://bittrex.com/Market/Index?MarketName=BTC-${exchangeName}"></a></td>
+        <td class="binance"><a target="_blank" href="https://www.binance.com/trade.html?symbol=${exchangeName}_BTC"></a></td>
+        <td class="difference"></td>
+      `;
+
+      table.appendChild(row);
+    });
+
+    const exchangePrices = CRYPTO.reduce((prices, currency) => {
+      prices[currency] = {};
+
+      return prices;
+    }, {});
+
+    const missing = MISSING.map(currency => {
+      fetch(`https://api.binance.com/api/v1/ticker/price?symbol=${currency}BTC`)
+        .then(response => {
+          return response.json();
+        })
+        .then(ticker => {
+          const entry = document.querySelector(`.${currency} .binance a`);
+          const price = ticker.price;
+
+          entry.textContent = price;
+          exchangePrices[currency].binance = price;
+        });
+    });
+
+    Promise.all([
+      fetch(`https://min-api.cryptocompare.com/data/pricemulti?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Bittrex`)
+        .then(response => response.json())
+        .then(prices => {
+          CRYPTO.forEach(currency => {
+            const entry = document.querySelector(`.${currency} .bittrex a`);
+            const price = prices[currency].BTC
+
+            entry.textContent = price;
+            exchangePrices[currency].bittrex = price;
+          });
+        }),
+      fetch(`https://min-api.cryptocompare.com/data/pricemulti?fsyms=${BINANCE.join()}&tsyms=BTC&e=Binance`)
+        .then(response => response.json())
+        .then(prices => {
+          BINANCE.forEach(currency => {
+            const entry = document.querySelector(`.${currency} .binance a`);
+            const price = prices[currency].BTC;
+
+            entry.textContent = price;
+            exchangePrices[currency].binance = price;
+          });
+        }),
+      ...missing
+    ]).then(() => {
+      CRYPTO.forEach(currency => {
+        const bittrex = exchangePrices[currency].bittrex;
+        const binance = exchangePrices[currency].binance;
+
+        if (!bittrex || !binance) return;
+
+        const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
+        const binanceEntry = document.querySelector(`.${currency} .binance a`);
+
+        [bittrexEntry, binanceEntry].forEach(entry => entry.classList.remove('higher', 'lower'));
+
+        const difference = bittrex - binance;
+
+        if (difference > 0) {
+          bittrexEntry.classList.add('higher');
+          binanceEntry.classList.add('lower');
+        } else {
+          bittrexEntry.classList.add('lower');
+          binanceEntry.classList.add('higher');
+        }
+
+        const entry = document.querySelector(`.${currency} .difference`);
+
+        const percentage = Math.abs(difference)/Math.min(bittrex, binance) * 100;
+
+        entry.textContent = `${percentage.toFixed(2)}%`;
+
+        entry.classList.remove('levelOne', 'levelTwo', 'levelThree');
+
+        if (percentage > 4.5) {
+          entry.classList.add('levelThree');
+        } else if (percentage > 3) {
+          entry.classList.add('levelTwo');
+        } else if (percentage > 2) {
+          entry.classList.add('levelOne');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
