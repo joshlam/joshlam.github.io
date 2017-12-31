@@ -16,14 +16,17 @@
     }
 
     .gain,
-    .lower,
-    .levelThree
+    .lower
     {
       color: green !important;
     }
 
     .levelOne {
       color: orange;
+    }
+
+    .levelThree {
+      color: #ff66ff;
     }
 
     .crypto, .to-do {
@@ -33,7 +36,7 @@
 </head>
 <body>
   <div>
-    <span class="warning">WARNING:</span> Make sure to check the status of the wallet on each exchange before trading. Deposits or withdrawals may be suspended. Also be sure to check the number of buy orders on the exchange you are moving assets into. There may only be a few orders for the price that is being shown.
+    <span class="warning">WARNING:</span> Make sure to check the status of the wallet on each exchange before trading. Deposits or withdrawals may be suspended. Also be sure to check the number of buy orders on the exchange you are moving assets into. There may only be a few orders for the price that is being shown. Prices can be delayed, so click the price to get the latest.
 
     <a target="_blank" href="https://bittrex.com/Balance">Bittrex wallets</a>
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
@@ -191,17 +194,19 @@
     }, {});
 
     const missing = MISSING.map(currency => {
-      fetch(`https://api.binance.com/api/v1/ticker/price?symbol=${currency}BTC`)
-        .then(response => {
-          return response.json();
-        })
-        .then(ticker => {
-          const entry = document.querySelector(`.${currency} .binance a`);
-          const price = ticker.price;
+      // fetch(`https://api.binance.com/api/v1/ticker/price?symbol=${currency}BTC`)
+      //   .then(response => response.json())
+      //   .then(ticker => {
+      //     const entry = document.querySelector(`.${currency} .binance a`);
+      //     const price = ticker.price;
 
-          entry.textContent = price;
-          exchangePrices[currency].binance = price;
-        });
+      //     entry.textContent = price;
+      //     exchangePrices[currency].binance = price;
+      //   });
+
+      const entry = document.querySelector(`.${currency} .binance a`);
+
+      entry.textContent = 'CHECK';
     });
 
     Promise.all([
