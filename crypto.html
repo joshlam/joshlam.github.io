@@ -110,16 +110,6 @@
       'ZEC'
     ];
 
-    const MISSING = [
-      'LUN',
-      'NAV',
-      'TRIG',
-      'WAVES',
-      'WINGS'
-    ];
-
-    const BINANCE = CRYPTO.filter(currency => !MISSING.includes(currency));
-
     const COINMARKETCAP = {
       ADA: 'cardano',
       ADX: 'adx-net',
@@ -193,22 +183,6 @@
       return prices;
     }, {});
 
-    const missing = MISSING.map(currency => {
-      // fetch(`https://api.binance.com/api/v1/ticker/price?symbol=${currency}BTC`)
-      //   .then(response => response.json())
-      //   .then(ticker => {
-      //     const entry = document.querySelector(`.${currency} .binance a`);
-      //     const price = ticker.price;
-
-      //     entry.textContent = price;
-      //     exchangePrices[currency].binance = price;
-      //   });
-
-      const entry = document.querySelector(`.${currency} .binance a`);
-
-      entry.textContent = 'CHECK';
-    });
-
     Promise.all([
       fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Bittrex`)
         .then(response => response.json())
@@ -229,10 +203,10 @@
             changeEntry.textContent = `${change.toFixed(2)}%`;
           });
         }),
-      fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${BINANCE.join()}&tsyms=BTC&e=Binance`)
+      fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Binance`)
         .then(response => response.json())
         .then(({ RAW: prices }) => {
-          BINANCE.forEach(currency => {
+          CRYPTO.forEach(currency => {
             const entry = document.querySelector(`.${currency} .binance a`);
             const price = prices[currency].BTC.PRICE;
             const change = prices[currency].BTC.CHANGEPCT24HOUR;
@@ -247,8 +221,7 @@
 
             changeEntry.textContent = `${change.toFixed(2)}%`;
           });
-        }),
-      ...missing
+        })
     ]).then(() => {
       CRYPTO.forEach(currency => {
         const bittrex = exchangePrices[currency].bittrex;
