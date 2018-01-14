@@ -37,8 +37,8 @@
       color: #ff66ff;
     }
 
-    .crypto, .gdax, .to-do {
-      margin-top: 10px;
+    .last-updated {
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -51,8 +51,11 @@
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
   </div>
 
+  <div class="last-updated">
+    <b>Prices last updated</b>: <span class="time"></span>
+  </div>
+
   <div class="gdax">
-    <h4>Coinbase</h4>
     <ul class="usd-prices">
     </ul>
   </div>
@@ -70,8 +73,8 @@
   <div class="to-do">
     <h2>TO DO:</h2>
     <ul>
-      <li>Live updates</li>
       <li>Sorting</li>
+      <li>Separate calls to Cryptocompare from calls to GDAX to increase frequency of update</li>
       <li>Include coinbase in difference calculation</li>
       <li>Volume of orders within the difference range</li>
       <li>Send notification when difference reaches certain thresholds</li>
@@ -332,6 +335,8 @@
             entry.classList.add('levelOne');
           }
         });
+
+        document.querySelector('.last-updated .time').textContent = new Date();
 
         setTimeout(getPrices, 334);
       });
