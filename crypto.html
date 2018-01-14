@@ -47,6 +47,7 @@
     <span class="warning">WARNING:</span> Make sure to check the status of the wallet on each exchange before trading. Deposits or withdrawals may be suspended. Also be sure to check the number of buy orders on the exchange you are moving assets into. There may only be a few orders for the price that is being shown. Prices can be delayed, so click the price to get the latest.
 
     <a target="_blank" href="https://bittrex.com/Balance">Bittrex wallets</a>
+    <a target="_blank" href="https://bittrex.com/Status">Bittrex wallet statuses</a>
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
   </div>
 
@@ -211,126 +212,132 @@
       table.appendChild(row);
     });
 
-    const exchangePrices = CRYPTO.reduce((prices, currency) => {
-      prices[currency] = {};
+    function getPrices() {
+      const exchangePrices = CRYPTO.reduce((prices, currency) => {
+        prices[currency] = {};
 
-      return prices;
-    }, {});
+        return prices;
+      }, {});
 
-    Promise.all([
-      fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Bittrex`)
-        .then(response => response.json())
-        .then(({ RAW: prices }) => {
-          CRYPTO.forEach(currency => {
-            const entry = document.querySelector(`.${currency} .bittrex a`);
-            const price = prices[currency].BTC.PRICE;
-            const change = prices[currency].BTC.CHANGEPCT24HOUR;
+      Promise.all([
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Bittrex`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => {
+            CRYPTO.forEach(currency => {
+              const entry = document.querySelector(`.${currency} .bittrex a`);
+              const price = prices[currency].BTC.PRICE;
+              const change = prices[currency].BTC.CHANGEPCT24HOUR;
+
+              entry.textContent = price;
+              exchangePrices[currency].bittrex = price;
+
+              const changeEntry = document.querySelector(`.${currency} .bittrex-change`);
+
+              changeEntry.classList.remove('gain', 'loss');
+              changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+
+              changeEntry.textContent = `${change.toFixed(2)}%`;
+            });
+          }),
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Binance`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => {
+            CRYPTO.forEach(currency => {
+              const entry = document.querySelector(`.${currency} .binance a`);
+              const price = prices[currency].BTC.PRICE;
+              // const change = prices[currency].BTC.CHANGEPCT24HOUR;
+
+              entry.textContent = price;
+              exchangePrices[currency].binance = price;
+
+              // const changeEntry = document.querySelector(`.${currency} .binance-change`);
+
+              // changeEntry.classList.remove('gain', 'loss');
+              // changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+
+              // changeEntry.textContent = `${change.toFixed(2)}%`;
+            });
+          }),
+        fetch(`https://api.gdax.com/products/BTC-USD/ticker`)
+          .then(response => response.json())
+          .then(({ price }) => {
+            document.querySelector(`.BTC-USD .price`).textContent = `$${price}`;
+
+            exchangePrices.BTC = price;
+          }),
+        fetch(`https://api.gdax.com/products/BCH-USD/ticker`)
+          .then(response => response.json())
+          .then(({ price }) => {
+            document.querySelector(`.BCH-USD .price`).textContent = `$${price}`;
+
+            exchangePrices.BCH.USD = price;
+          }),
+        fetch(`https://api.gdax.com/products/ETH-BTC/ticker`)
+          .then(response => response.json())
+          .then(({ price }) => {
+            const entry = document.querySelector(`.ETH .coinbase a`);
 
             entry.textContent = price;
-            exchangePrices[currency].bittrex = price;
-
-            const changeEntry = document.querySelector(`.${currency} .bittrex-change`);
-
-            changeEntry.classList.remove('gain', 'loss');
-            changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
-
-            changeEntry.textContent = `${change.toFixed(2)}%`;
-          });
-        }),
-      fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Binance`)
-        .then(response => response.json())
-        .then(({ RAW: prices }) => {
-          CRYPTO.forEach(currency => {
-            const entry = document.querySelector(`.${currency} .binance a`);
-            const price = prices[currency].BTC.PRICE;
-            // const change = prices[currency].BTC.CHANGEPCT24HOUR;
+            exchangePrices.ETH.coinbase = price;
+          }),
+        fetch(`https://api.gdax.com/products/LTC-BTC/ticker`)
+          .then(response => response.json())
+          .then(({ price }) => {
+            const entry = document.querySelector(`.LTC .coinbase a`);
 
             entry.textContent = price;
-            exchangePrices[currency].binance = price;
+            exchangePrices.LTC.coinbase = price;
+          })
+      ]).then(() => {
+        const coinbaseBCHBTC = (exchangePrices.BCH.USD / exchangePrices.BTC).toFixed(8);
 
-            // const changeEntry = document.querySelector(`.${currency} .binance-change`);
+        exchangePrices.BCH.coinbase = coinbaseBCHBTC;
 
-            // changeEntry.classList.remove('gain', 'loss');
-            // changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+        document.querySelector(`.BCH .coinbase a`).textContent = coinbaseBCHBTC;
 
-            // changeEntry.textContent = `${change.toFixed(2)}%`;
-          });
-        }),
-      fetch(`https://api.gdax.com/products/BTC-USD/ticker`)
-        .then(response => response.json())
-        .then(({ price }) => {
-          document.querySelector(`.BTC-USD .price`).textContent = `$${price}`;
+        CRYPTO.forEach(currency => {
+          const bittrex = exchangePrices[currency].bittrex;
+          const binance = exchangePrices[currency].binance;
 
-          exchangePrices.BTC = price;
-        }),
-      fetch(`https://api.gdax.com/products/BCH-USD/ticker`)
-        .then(response => response.json())
-        .then(({ price }) => {
-          document.querySelector(`.BCH-USD .price`).textContent = `$${price}`;
+          if (!bittrex || !binance) return;
 
-          exchangePrices.BCH.USD = price;
-        }),
-      fetch(`https://api.gdax.com/products/ETH-BTC/ticker`)
-        .then(response => response.json())
-        .then(({ price }) => {
-          const entry = document.querySelector(`.ETH .coinbase a`);
+          const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
+          const binanceEntry = document.querySelector(`.${currency} .binance a`);
 
-          entry.textContent = price;
-          exchangePrices.ETH.coinbase = price;
-        }),
-      fetch(`https://api.gdax.com/products/LTC-BTC/ticker`)
-        .then(response => response.json())
-        .then(({ price }) => {
-          const entry = document.querySelector(`.LTC .coinbase a`);
+          [bittrexEntry, binanceEntry].forEach(entry => entry.classList.remove('higher', 'lower'));
 
-          entry.textContent = price;
-          exchangePrices.LTC.coinbase = price;
-        })
-    ]).then(() => {
-      const coinbaseBCHBTC = (exchangePrices.BCH.USD / exchangePrices.BTC).toFixed(8);
+          const difference = bittrex - binance;
 
-      exchangePrices.BCH.coinbase = coinbaseBCHBTC;
+          if (difference > 0) {
+            bittrexEntry.classList.add('higher');
+            binanceEntry.classList.add('lower');
+          } else {
+            bittrexEntry.classList.add('lower');
+            binanceEntry.classList.add('higher');
+          }
 
-      document.querySelector(`.BCH .coinbase a`).textContent = coinbaseBCHBTC;
+          const entry = document.querySelector(`.${currency} .difference`);
 
-      CRYPTO.forEach(currency => {
-        const bittrex = exchangePrices[currency].bittrex;
-        const binance = exchangePrices[currency].binance;
+          const percentage = Math.abs(difference)/Math.min(bittrex, binance) * 100;
 
-        if (!bittrex || !binance) return;
+          entry.textContent = `${percentage.toFixed(2)}%`;
 
-        const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
-        const binanceEntry = document.querySelector(`.${currency} .binance a`);
+          entry.classList.remove('levelOne', 'levelTwo', 'levelThree');
 
-        [bittrexEntry, binanceEntry].forEach(entry => entry.classList.remove('higher', 'lower'));
+          if (percentage > 4.5) {
+            entry.classList.add('levelThree');
+          } else if (percentage > 3) {
+            entry.classList.add('levelTwo');
+          } else if (percentage > 1) {
+            entry.classList.add('levelOne');
+          }
+        });
 
-        const difference = bittrex - binance;
-
-        if (difference > 0) {
-          bittrexEntry.classList.add('higher');
-          binanceEntry.classList.add('lower');
-        } else {
-          bittrexEntry.classList.add('lower');
-          binanceEntry.classList.add('higher');
-        }
-
-        const entry = document.querySelector(`.${currency} .difference`);
-
-        const percentage = Math.abs(difference)/Math.min(bittrex, binance) * 100;
-
-        entry.textContent = `${percentage.toFixed(2)}%`;
-
-        entry.classList.remove('levelOne', 'levelTwo', 'levelThree');
-
-        if (percentage > 4.5) {
-          entry.classList.add('levelThree');
-        } else if (percentage > 3) {
-          entry.classList.add('levelTwo');
-        } else if (percentage > 1) {
-          entry.classList.add('levelOne');
-        }
+        setTimeout(getPrices, 334);
       });
-    });
+    }
+
+    getPrices();
   </script>
 </body>
 </html>
