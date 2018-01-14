@@ -7,18 +7,26 @@
       color: blue;
     }
 
-    .higher,
+    .higher {
+      color: #ff0066 !important;
+    }
+
+    .lower {
+      color: green !important;
+    }
+
     .levelTwo,
-    .loss,
     .warning
     {
       color: red !important;
     }
 
-    .gain,
-    .lower
-    {
-      color: green !important;
+    .gain {
+      color: rgb(130, 214, 84) !important;
+    }
+
+    .loss {
+      color: rgb(237, 87, 72) !important;
     }
 
     .levelOne {
@@ -29,7 +37,7 @@
       color: #ff66ff;
     }
 
-    .crypto, .to-do {
+    .crypto, .gdax, .to-do {
       margin-top: 10px;
     }
   </style>
@@ -41,13 +49,20 @@
     <a target="_blank" href="https://bittrex.com/Balance">Bittrex wallets</a>
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
   </div>
+
+  <div class="gdax">
+    <h4>Coinbase</h4>
+    <ul class="usd-prices">
+    </ul>
+  </div>
+
   <table class="crypto">
     <tr>
       <th>Currency</th>
       <th>Bittrex</th>
       <th>Change</th>
       <th>Binance</th>
-      <th>Change</th>
+      <th>Coinbase</th>
       <th>Difference</th>
     </tr>
   </table>
@@ -55,19 +70,42 @@
     <h2>TO DO:</h2>
     <ul>
       <li>Live updates</li>
-      <li>Price of Bitcoin</li>
-      <li>Coinbase prices for BTC (USD), BCH (USD), ETH (BTC), LTC (BTC)</li>
       <li>Sorting</li>
+      <li>Include coinbase in difference calculation</li>
       <li>Volume of orders within the difference range</li>
       <li>Send notification when difference reaches certain thresholds</li>
       <li>Optomize color scheme and appearance</li>
-      <li>Wallet status and transaction times</li>
+      <li>Wallet status, transaction times, number of confirmations required</li>
       <li>Add wallets</li>
       <li>Add RLC</li>
     </ul>
   </div>
 
   <script>
+    const usdPrices = document.querySelector('.usd-prices');
+
+    ['BTC', 'BCH', 'ETH', 'LTC'].forEach(currency => {
+      const row = document.createElement('li');
+
+      row.classList.add(`${currency}-USD`);
+
+      row.innerHTML = `
+        <li>
+          <a target="_blank" href="https://www.gdax.com/trade/${currency}-USD">${currency}</a>: <span class="price"></span>
+        </li>
+      `;
+
+      usdPrices.appendChild(row);
+
+      if (currency === 'BTC' || currency === 'BTC') return;
+
+      fetch(`https://api.gdax.com/products/${currency}-USD/ticker`)
+        .then(response => response.json())
+        .then(({ price }) => {
+          document.querySelector(`.${currency}-USD .price`).textContent = `$${price}`;
+        });
+    });
+
     const CRYPTO = [
       'ADA',
       'ADX',
@@ -166,7 +204,7 @@
         <td class="bittrex"><a target="_blank" href="https://bittrex.com/Market/Index?MarketName=BTC-${exchangeName}"></a></td>
         <td class="bittrex-change"></td>
         <td class="binance"><a target="_blank" href="https://www.binance.com/trade.html?symbol=${exchangeName}_BTC"></a></td>
-        <td class="binance-change"</td>
+        <td class="coinbase"><a target="_blank" href="https://www.gdax.com/trade/${currency}-BTC"></a></td>
         <td class="difference"></td>
       `;
 
@@ -205,20 +243,56 @@
           CRYPTO.forEach(currency => {
             const entry = document.querySelector(`.${currency} .binance a`);
             const price = prices[currency].BTC.PRICE;
-            const change = prices[currency].BTC.CHANGEPCT24HOUR;
+            // const change = prices[currency].BTC.CHANGEPCT24HOUR;
 
             entry.textContent = price;
             exchangePrices[currency].binance = price;
 
-            const changeEntry = document.querySelector(`.${currency} .binance-change`);
+            // const changeEntry = document.querySelector(`.${currency} .binance-change`);
 
-            changeEntry.classList.remove('gain', 'loss');
-            changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+            // changeEntry.classList.remove('gain', 'loss');
+            // changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
 
-            changeEntry.textContent = `${change.toFixed(2)}%`;
+            // changeEntry.textContent = `${change.toFixed(2)}%`;
           });
+        }),
+      fetch(`https://api.gdax.com/products/BTC-USD/ticker`)
+        .then(response => response.json())
+        .then(({ price }) => {
+          document.querySelector(`.BTC-USD .price`).textContent = `$${price}`;
+
+          exchangePrices.BTC = price;
+        }),
+      fetch(`https://api.gdax.com/products/BCH-USD/ticker`)
+        .then(response => response.json())
+        .then(({ price }) => {
+          document.querySelector(`.BCH-USD .price`).textContent = `$${price}`;
+
+          exchangePrices.BCH.USD = price;
+        }),
+      fetch(`https://api.gdax.com/products/ETH-BTC/ticker`)
+        .then(response => response.json())
+        .then(({ price }) => {
+          const entry = document.querySelector(`.ETH .coinbase a`);
+
+          entry.textContent = price;
+          exchangePrices.ETH.coinbase = price;
+        }),
+      fetch(`https://api.gdax.com/products/LTC-BTC/ticker`)
+        .then(response => response.json())
+        .then(({ price }) => {
+          const entry = document.querySelector(`.LTC .coinbase a`);
+
+          entry.textContent = price;
+          exchangePrices.LTC.coinbase = price;
         })
     ]).then(() => {
+      const coinbaseBCHBTC = (exchangePrices.BCH.USD / exchangePrices.BTC).toFixed(8);
+
+      exchangePrices.BCH.coinbase = coinbaseBCHBTC;
+
+      document.querySelector(`.BCH .coinbase a`).textContent = coinbaseBCHBTC;
+
       CRYPTO.forEach(currency => {
         const bittrex = exchangePrices[currency].bittrex;
         const binance = exchangePrices[currency].binance;
