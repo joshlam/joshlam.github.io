@@ -244,13 +244,21 @@
         return prices;
       }, {});
 
+      exchangePrices.BTC = {};
+
       Promise.all(
         ['BTC', 'BCH', 'ETH', 'LTC'].reduce((promises, currency) => {
           promises.push(
             fetch(`https://api.gdax.com/products/${currency}-USD/ticker`)
               .then(response => response.json())
-              .then(({ price }) => {
+              .then(ticker => {
+                const price = Number(ticker.price).toFixed(2);
+
                 document.querySelector(`.${currency}-USD .price`).textContent = `$${price}`;
+
+                if (currency !== 'BTC') return;
+
+                exchangePrices[currency].coinbase = price;
               })
           )
 
@@ -259,7 +267,8 @@
           promises.push(
             fetch(`https://api.gdax.com/products/${currency}-BTC/ticker`)
               .then(response => response.json())
-              .then(({ price }) => {
+              .then(ticker => {
+                const price = Number(ticker.price);
                 const entry = document.querySelector(`.${currency} .coinbase a`);
 
                 entry.textContent = price;
@@ -270,6 +279,8 @@
           return promises
         }, [])
       ).then(() => {
+        document.title = `$${exchangePrices.BTC.coinbase}`;
+
         setTimeout(getCoinbasePrices, 1000);
       }).catch(() => {
         setTimeout(getCoinbasePrices, 2000);
