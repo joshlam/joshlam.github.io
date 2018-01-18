@@ -7,7 +7,7 @@ const requestHandler = (request, response) => {
   if (!request.url.match('\/crypto') || !request.url.match('arbitrage')) return;
 
   const bittrexPricesPromise = new Promise(resolve => {
-    https.get('https://bittrex.com/api/v1.1/public/getmarketsummaries', res => {
+    https.get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', res => {
       let body = '';
 
       res.on('data', data => {
@@ -15,17 +15,15 @@ const requestHandler = (request, response) => {
       });
 
       res.on('end', () => {
-        resolve(JSON.parse(body).result.reduce((prices, market) => {
-          const base = market.MarketName.split('-')[0];
+        resolve(JSON.parse(body).result.reduce((prices, { Market: market, Summary: summary }) => {
+          if (market.BaseCurrency != 'BTC') return prices;
 
-          if (base != 'BTC') return prices;
-
-          const currency = market.MarketName.split('-')[1];
-
-          prices[currency] = {
-            bid: market.Bid,
-            ask: market.Ask,
-            last: market.Last
+          prices[market.MarketCurrency] = {
+            bid: summary.Bid,
+            ask: summary.Ask,
+            last: summary.Last,
+            marketActive: market.IsActive,
+            notice: market.Notice
           };
 
           return prices;
@@ -56,7 +54,6 @@ const requestHandler = (request, response) => {
             lastUpdated: status.Health.MinutesSinceBHUpdated,
             walletActive: status.Health.IsActive,
             confirmations: status.Currency.MinConfirmation,
-            marketActive: status.Currency.IsActive,
             notice: status.Currency.Notice
           };
 
@@ -83,7 +80,7 @@ const requestHandler = (request, response) => {
 
           const currency = market.symbol.split('BTC')[0];
 
-          prices[currency] = market.price;
+          prices[currency] = Number(market.price);
 
           return prices;
         }, {}));
@@ -108,9 +105,12 @@ const requestHandler = (request, response) => {
 
           const currency = market.symbol.split('BTC')[0];
 
-          delete market.symbol;
-
-          prices[currency] = market;
+          prices[currency] = {
+            bidPrice: Number(market.bidPrice),
+            bidQty: Number(market.bidQty),
+            askPrice: Number(market.askPrice),
+            askQty: Number(market.askQty)
+          };
 
           return prices;
         }, {}));
