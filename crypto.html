@@ -7,6 +7,10 @@
       color: blue;
     }
 
+    .bittrex-status {
+      text-align: center;
+    }
+
     .higher {
       color: #ff0066 !important;
     }
@@ -40,6 +44,28 @@
     .last-updated {
       margin-top: 5px;
     }
+
+    .tooltip {
+      border-bottom: 1px dotted black;
+      display: inline-block;
+      position: relative;
+    }
+
+    .tooltip .tooltiptext {
+      color: #fff;
+      background-color: black;
+      border-radius: 6px;
+      padding: 5px 0;
+      position: absolute;
+      text-align: center;
+      visibility: hidden;
+      width: 120px;
+      z-index: 1;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+    }
   </style>
 </head>
 <body>
@@ -64,6 +90,7 @@
     <tr>
       <th>Currency</th>
       <th>Bittrex</th>
+      <th>Status</th>
       <th>Binance</th>
       <th>Change</th>
       <th>Coinbase</th>
@@ -75,10 +102,10 @@
     <ul>
       <li>Sorting</li>
       <li>Include coinbase in difference calculation</li>
-      <li>Volume of orders within the difference range</li>
+      <li>Volume of orders for Bittrex</li>
       <li>Send notification when difference reaches certain thresholds</li>
       <li>Optomize color scheme and appearance</li>
-      <li>Wallet status, transaction times, number of confirmations required</li>
+      <li>Wallet status, transaction times, number of confirmations required for Binance</li>
       <li>Add wallets</li>
     </ul>
   </div>
@@ -208,6 +235,7 @@
       row.innerHTML = `
         <td class="currency"><a target="_blank" href="https://coinmarketcap.com/currencies/${COINMARKETCAP[currency]}">${currency}</a></td>
         <td class="bittrex"><a target="_blank" href="https://bittrex.com/Market/Index?MarketName=BTC-${exchangeName}"></a></td>
+        <td class="bittrex-status"></td>
         <td class="binance"><a target="_blank" href="https://www.binance.com/trade.html?symbol=${exchangeName}_BTC"></a></td>
         <td class="binance-change"></td>
         <td class="coinbase"><a target="_blank" href="https://www.gdax.com/trade/${currency}-BTC"></a></td>
@@ -268,6 +296,24 @@
       });
     }
 
+    function createTooltip(toggle, text) {
+      const tooltip = document.createElement('div');
+
+      tooltip.classList.add('tooltip');
+
+      tooltip.textContent = toggle;
+
+      const tooltipText = document.createElement('span');
+
+      tooltipText.classList.add('tooltiptext');
+
+      tooltipText.textContent = text;
+
+      tooltip.appendChild(tooltipText);
+
+      return tooltip;
+    }
+
     function getPrices() {
       const exchangePrices = CRYPTO.reduce((prices, currency) => {
         prices[currency] = {};
@@ -302,15 +348,60 @@
               const exchangeName = CRYPTOCOMPARE[currency] ? CRYPTOCOMPARE[currency] : currency;
 
               const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
-              const bittrexPrice = bittrexPrices[exchangeName].last;
+              const bittrexData = bittrexPrices[exchangeName];
+              const bittrexWallet = bittrexWallets[exchangeName];
+              const bittrexPrice = bittrexData.last;
 
-              bittrexEntry.textContent = bittrexPrice;
+              bittrexEntry.innerHTML = '';
+
+              bittrexEntry.appendChild(
+                createTooltip(
+                  bittrexPrice,
+                  `
+                    bid: ${bittrexData.bid},
+                    ask: ${bittrexData.ask},
+                    confirmations: ${bittrexWallet.confirmations},
+                    block height updated: ${bittrexWallet.lastUpdated}
+                  `
+                )
+              );
+
               exchangePrices[currency].bittrex = bittrexPrice;
 
-              const binanceEntry = document.querySelector(`.${currency} .binance a`);
-              const binancePrice = Number(binancePrices[exchangeName]);
+              const bittrexStatus = document.querySelector(`.${currency} .bittrex-status`);
 
-              binanceEntry.textContent = binancePrice;
+              if (bittrexData.marketActive && bittrexWallet.walletActive) {
+                bittrexStatus.innerHTML = '';
+              } else {
+                bittrexStatus.innerHTML = '';
+                bittrexStatus.appendChild(
+                  createTooltip(
+                    '!',
+                    `${bittrexData.notice}; ${bittrexWallet.notice}`
+                  )
+                );
+              }
+
+              const binanceEntry = document.querySelector(`.${currency} .binance a`);
+              const binancePrice = binancePrices[exchangeName];
+              const binanceOrder = binanceOrders[exchangeName];
+
+              binanceEntry.innerHTML = '';
+
+              binanceEntry.appendChild(
+                createTooltip(
+                  binancePrice,
+                  `
+                    bid: ${binanceOrder.bidPrice},
+                    bidQty: ${binanceOrder.bidQty},
+                    bidBTC: ${(binanceOrder.bidPrice * binanceOrder.bidQty).toFixed(3)}
+                    ask: ${binanceOrder.askPrice},
+                    askQty: ${binanceOrder.askQty},
+                    askBTC: ${(binanceOrder.askPrice * binanceOrder.askQty).toFixed(3)}
+                  `
+                )
+              );
+
               exchangePrices[currency].binance = binancePrice;
             });
           }),
