@@ -263,6 +263,8 @@
         document.querySelector(`.BCH .coinbase a`).textContent = coinbaseBCHBTC;
 
         setTimeout(getCoinbasePrices, 750);
+      }).catch(() => {
+        setTimeout(getCoinbasePrices, 1500);
       });
     }
 
@@ -373,6 +375,8 @@
         document.querySelector('.last-updated .time').textContent = new Date();
 
         setTimeout(getPrices, 750);
+      }).catch(() => {
+        setTimeout(getPrices, 1500);
       });
     }
 
