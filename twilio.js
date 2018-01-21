@@ -1,6 +1,20 @@
-const twilio = require('twilio');
+const camelCase = require('camelcase');
+const Twilio = require('twilio');
 
 const config = require('./config');
+
+// Convert keys to camelCase to conform with the twilio-node api definition contract
+function camelCaseKeys(hashmap) {
+  const newhashmap = {};
+
+  Object.keys(hashmap).forEach(key => {
+    const newkey = camelCase(key);
+
+    newhashmap[newkey] = hashmap[key];
+  });
+
+  return newhashmap;
+};
 
 /**
  * Create a device binding from a POST HTTP request
@@ -15,20 +29,21 @@ const config = require('./config');
 exports.registerBind = function registerBind(binding) {
   const service = getTwilioClient();
 
-  return service.bindings.create(binding).then((binding) => {
+  return service.bindings.create(camelCaseKeys(binding)).then(binding => {
     console.log(binding);
     // Send a JSON response indicating success
     return {
       status: 200,
       data: {message: 'Binding created!'},
     };
-  }).catch((error) => {
+  }).catch(error => {
     console.log(error);
+
     return {
       status: 500,
       data: {
         error: error,
-        message: 'Failed to create binding: ' + error,
+        message: `Failed to create binding: ${error}`,
       },
     };
   });
@@ -40,14 +55,16 @@ exports.sendNotification = function sendNotification(notification) {
   const service = getTwilioClient();
 
   // Send a notification
-  return service.notifications.create(notification).then((message) => {
+  return service.notifications.create(camelCaseKeys(notification)).then(message => {
     console.log(message);
+
     return {
       status: 200,
       data: {message: 'Successful sending notification'},
     };
   }).catch((error) => {
     console.log(error);
+
     return {
       status: 500,
       data: {error: error},

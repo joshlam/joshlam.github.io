@@ -1,3 +1,5 @@
+const { sendNotification } = require('./twilio');
+
 const CRYPTO = [
   'ADA',
   'ADX',
@@ -42,7 +44,7 @@ const CRYPTO = [
 
 const diffLogs = CRYPTO.reduce((logs, currency) => {
   logs[currency] = {
-    difference: undefined,
+    difference: 0,
     level: 0,
     lastNotification: undefined,
     numNotifications: 0
@@ -51,9 +53,12 @@ const diffLogs = CRYPTO.reduce((logs, currency) => {
   return logs;
 }, {});
 
+let lastNotification = Date.now() - 300000;
+
 function diff(prices) {
   const now = Date.now();
-  // const notifications = [];
+  const notifications = [];
+  const urgent = [];
 
   CRYPTO.forEach(currency => {
     const bittrex = prices.bittrexPrices[currency].last;
@@ -80,16 +85,36 @@ function diff(prices) {
     if (percentage > 3)  level += 1;
     if (percentage > 1)  level += 1;
 
-    if (level > diffLog.level) {
+    if (level > diffLog.level && percentage - diffLog.difference > 0.33 && level > 1) {
       console.log(`${currency} is cheaper at ${cheaperExchange}: ${percentage}%`);
+      console.log(`Bittrex: ${bittrex}, Binance: ${binance}`);
+      console.log(`Previously the difference was ${diffLog.difference}%`);
+
+      notifications.push(`${currency}: ${percentage}%`);
 
       diffLog.lastNotification = now;
       diffLog.numNotifications += 1;
     }
 
+    if (level > 4) urgent.push(`${currency}: ${percentage}%`);
+
     diffLog.difference = percentage;
     diffLog.level = level;
   });
+
+  if (now - lastNotification > 300000 && notifications.length > 0) {
+    lastNotification = now;
+
+    console.log('Sending notifications', notifications.join('; '));
+
+    sendNotification({ body: notifications.join('; '), tag: 'all' });
+  } else if (now - lastNotification > 30000 && urgent.length > 0) {
+    lastNotification = now;
+
+    console.log('Sending urgent notifications', urgent.join('; '));
+
+    sendNotification({ body: urgent.join('; '), tag: 'all' });
+  }
 }
 
 module.exports = diff;
