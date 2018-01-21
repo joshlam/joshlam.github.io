@@ -252,7 +252,7 @@
             fetch(`https://api.gdax.com/products/${currency}-USD/ticker`)
               .then(response => response.json())
               .then(ticker => {
-                const price = Number(ticker.price).toFixed(2);
+                const price = Number(Number(ticker.price).toFixed(2));
 
                 document.querySelector(`.${currency}-USD .price`).textContent = `$${price}`;
 
@@ -456,7 +456,7 @@
 
         document.querySelector('.last-updated .time').textContent = new Date();
 
-        setTimeout(getPrices, 750);
+        setTimeout(getPrices, 1000);
       }).catch(() => {
         setTimeout(getPrices, 1500);
       });

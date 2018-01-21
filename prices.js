@@ -1,11 +1,12 @@
-const http = require('http');
 const https = require('https');
 
-const PORT = 8080;
+let cachedPrices = {};
 
-const requestHandler = (request, response) => {
-  if (!request.url.match('\/crypto') || !request.url.match('arbitrage')) return;
+exports.getCachedPrices = function getCachedPrices() {
+  return cachedPrices;
+};
 
+exports.getPrices = function getPrices(diff) {
   const bittrexPricesPromise = new Promise(resolve => {
     https.get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', res => {
       let body = '';
@@ -127,24 +128,18 @@ const requestHandler = (request, response) => {
     binancePricesPromise,
     binanceOrdersPromise
   ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders]) => {
-    response.setHeader('Content-Type', 'application/json');
-    response.setHeader('Access-Control-Allow-Origin', '*');
+    cachedPrices = {
+      bittrexPrices,
+      bittrexWallets,
+      binancePrices,
+      binanceOrders,
+      lastUpdated: new Date()
+    };
 
-    response.end(
-      JSON.stringify({
-        bittrexPrices,
-        bittrexWallets,
-        binancePrices,
-        binanceOrders
-      })
-    );
+    diff(cachedPrices);
+
+    setTimeout(getPrices, 1000, diff);
+  }).catch(() => {
+    setTimeout(getPrices, 1500, diff);
   });
-}
-
-const server = http.createServer(requestHandler);
-
-server.listen(PORT, error => {
-  if (error) return console.log(error);
-
-  console.log(`server is listening on ${PORT}`);
-});
+};
