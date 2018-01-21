@@ -53,9 +53,15 @@ const diffLogs = CRYPTO.reduce((logs, currency) => {
   return logs;
 }, {});
 
+const notificationLog = [];
+
 let lastNotification = Date.now() - 300000;
 
-function diff(prices) {
+exports.getNotifications = function getNotifications() {
+  return { notifications: notificationLog };
+};
+
+exports.diff = function diff(prices) {
   const now = Date.now();
   const notifications = [];
   const urgent = [];
@@ -96,6 +102,17 @@ function diff(prices) {
       diffLog.numNotifications += 1;
     }
 
+    if (level > 0) {
+      if (notificationLog.length > 500) notificationLog.shift();
+
+      notificationLog.push([
+        `${currency} is cheaper at ${cheaperExchange}: ${percentage}%`,
+        `Bittrex: ${bittrex}, Binance: ${binance}`,
+        `Previously the difference was ${diffLog.difference}%`,
+        new Date()
+      ].join('\n'))
+    }
+
     if (level > 4) urgent.push(`${currency}: ${percentage}%`);
 
     diffLog.difference = percentage;
@@ -116,5 +133,3 @@ function diff(prices) {
     sendNotification({ body: urgent.join('; '), tag: 'all' });
   }
 }
-
-module.exports = diff;

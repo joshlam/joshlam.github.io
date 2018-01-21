@@ -1,6 +1,6 @@
 const http = require('http');
 
-const diff = require('./diff');
+const { diff, getNotifications } = require('./diff');
 const { getCachedPrices, getPrices } = require('./prices');
 const { registerBind } = require('./twilio');
 
@@ -9,6 +9,9 @@ const PORT = 8080;
 const requestHandler = (request, response) => {
   console.log(request.url);
 
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Content-Type', 'application/json');
+
   if (request.url.match('\/register')) {
     let body = '';
 
@@ -16,17 +19,17 @@ const requestHandler = (request, response) => {
       body += chunk;
     }).on('end', () => {
       registerBind(JSON.parse(body)).then(data => {
-        response.setHeader('Access-Control-Allow-Origin', '*');
         response.statusCode = data.status;
         response.end(JSON.stringify(data.data));
       });
     });
   }
 
-  if (!request.url.match('\/crypto') || !request.url.match('arbitrage')) return;
+  if (request.url.match('\/notifications')) {
+    response.end(JSON.stringify(getNotifications()));
+  }
 
-  response.setHeader('Content-Type', 'application/json');
-  response.setHeader('Access-Control-Allow-Origin', '*');
+  if (!request.url.match('\/crypto') || !request.url.match('arbitrage')) return;
 
   response.end(JSON.stringify(getCachedPrices()));
 }
