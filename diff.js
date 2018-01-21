@@ -113,7 +113,7 @@ exports.diff = function diff(prices) {
       ].join('\n'))
     }
 
-    if (level > 4) urgent.push(`${currency}: ${percentage}%`);
+    if (level > 3) urgent.push(`${currency}: ${percentage}%`);
 
     diffLog.difference = percentage;
     diffLog.level = level;

@@ -103,7 +103,7 @@
       <li>Sorting</li>
       <li>Include coinbase in difference calculation</li>
       <li>Volume of orders for Bittrex</li>
-      <li>Send notification when difference reaches certain thresholds</li>
+      <li>Optomize notification rules</li>
       <li>Optomize color scheme and appearance</li>
       <li>Wallet status, transaction times, number of confirmations required for Binance</li>
       <li>Add wallets</li>
@@ -111,6 +111,26 @@
   </div>
 
   <script>
+    let notificationsEnabled = Notification.permission === 'granted';
+
+    if (!notificationsEnabled) {
+      Notification.requestPermission().then(result => {
+        if (result === 'denied') {
+          console.log('Permission wasn\'t granted. Allow a retry.');
+
+          return;
+        }
+
+        if (result === 'default') {
+          console.log('The permission request was dismissed.');
+
+          return;
+        }
+
+        notificationsEnabled = true;
+      });
+    }
+
     const usdPrices = document.querySelector('.usd-prices');
 
     ['BTC', 'BCH', 'ETH', 'LTC'].forEach(currency => {
@@ -312,6 +332,8 @@
         return prices;
       }, {});
 
+      const inactive = {};
+
       Promise.all([
         // fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Bittrex`)
         //   .then(response => response.json())
@@ -332,7 +354,7 @@
         //       changeEntry.textContent = `${change.toFixed(2)}%`;
         //     });
         //   }),
-        fetch('http://crypto-191318.appspot.com/crypto?arbitrage=true')
+        fetch('https://crypto-191318.appspot.com/crypto?arbitrage=true')
           .then(response => response.json())
           .then(({ bittrexPrices, bittrexWallets, binancePrices, binanceOrders }) => {
             CRYPTO.forEach(currency => {
@@ -371,6 +393,8 @@
                     `${bittrexMarket.notice}; ${bittrexWallet.notice}`
                   )
                 );
+
+                inactive[currency] = true;
               }
 
               const binanceEntry = document.querySelector(`.${currency} .binance a`);
@@ -416,6 +440,8 @@
             });
           })
       ]).then(() => {
+        const notifications = [];
+
         CRYPTO.forEach(currency => {
           const bittrex = exchangePrices[currency].bittrex;
           const binance = exchangePrices[currency].binance;
@@ -452,7 +478,15 @@
           } else if (percentage > 1) {
             entry.classList.add('levelOne');
           }
+
+          if (percentage > 3 && !inactive[currency]) {
+            notifications.push(`${currency}: ${percentage}%`);
+          }
         });
+
+        if (notificationsEnabled && notifications.length > 0) {
+          new Notification('Price Alerts', { body: notifications.join('; ') });
+        }
 
         document.querySelector('.last-updated .time').textContent = new Date();
 
