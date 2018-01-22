@@ -6,6 +6,10 @@ const { registerBind } = require('./twilio');
 
 const PORT = 8080;
 
+process.on('uncaughtException', err => {
+  console.log('Caught exception: ' + err);
+});
+
 const requestHandler = (request, response) => {
   console.log(request.url);
 
