@@ -32,7 +32,7 @@ exports.getPrices = function getPrices(diff) {
       });
 
     }).on('error', error => {
-      console.error(error);
+      console.log(`Bittrex price fetch error: ${error}`);
     });
   });
 
@@ -63,7 +63,7 @@ exports.getPrices = function getPrices(diff) {
       });
 
     }).on('error', error => {
-      console.error(error);
+      console.log(`Bittrex wallet fetch error: ${error}`);
     });
   });
 
@@ -88,7 +88,7 @@ exports.getPrices = function getPrices(diff) {
       });
 
     }).on('error', error => {
-      console.error(error);
+      console.log(`Binance price fetch error: ${error}`);
     });
   });
 
@@ -118,7 +118,7 @@ exports.getPrices = function getPrices(diff) {
       });
 
     }).on('error', error => {
-      console.error(error);
+      console.log(`Binance order fetch error: ${error}`);
     });
   });
 
@@ -139,7 +139,10 @@ exports.getPrices = function getPrices(diff) {
     diff(cachedPrices);
 
     setTimeout(getPrices, 1000, diff);
-  }).catch(() => {
+  }).catch(error => {
+    console.log(`Price fetch error: ${error}`);
+    console.log('Retrying price fetch');
+
     setTimeout(getPrices, 1500, diff);
   });
 };

@@ -7,14 +7,17 @@ const { registerBind } = require('./twilio');
 const PORT = 8080;
 
 process.on('uncaughtException', err => {
-  console.log('Caught exception: ' + err);
+  console.log(`Caught exception: ${err}`);
 });
 
 const requestHandler = (request, response) => {
   console.log(request.url);
 
   response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   response.setHeader('Content-Type', 'application/json');
+  response.setHeader('Expires', 0);
+  response.setHeader('Pragma', 'no-cache');
 
   if (request.url.match('\/register')) {
     let body = '';
@@ -41,7 +44,7 @@ const requestHandler = (request, response) => {
 const server = http.createServer(requestHandler);
 
 server.listen(PORT, error => {
-  if (error) return console.log(error);
+  if (error) return console.log(`Server error: ${error}`);
 
   console.log(`server is listening on ${PORT}`);
 });
