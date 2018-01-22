@@ -9,7 +9,7 @@ exports.getCachedPrices = function getCachedPrices() {
 };
 
 exports.getPrices = function getPrices(diff) {
-  const bittrexPricesPromise = new Promise(resolve => {
+  const bittrexPricesPromise = new Promise((resolve, reject) => {
     https.get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', res => {
       let body = '';
 
@@ -35,10 +35,12 @@ exports.getPrices = function getPrices(diff) {
 
     }).on('error', error => {
       console.log(`Bittrex price fetch error: ${error}`);
+
+      reject(error);
     });
   });
 
-  const bittrexWalletsPromise = new Promise(resolve => {
+  const bittrexWalletsPromise = new Promise((resolve, reject) => {
     https.get('https://bittrex.com/api/v2.0/pub/currencies/GetWalletHealth', res => {
       let body = '';
 
@@ -66,10 +68,12 @@ exports.getPrices = function getPrices(diff) {
 
     }).on('error', error => {
       console.log(`Bittrex wallet fetch error: ${error}`);
+
+      reject(error);
     });
   });
 
-  const binancePricesPromise = new Promise(resolve => {
+  const binancePricesPromise = new Promise((resolve, reject) => {
     https.get('https://www.binance.com/api/v1/ticker/allPrices', res => {
       let body = '';
 
@@ -91,10 +95,12 @@ exports.getPrices = function getPrices(diff) {
 
     }).on('error', error => {
       console.log(`Binance price fetch error: ${error}`);
+
+      reject(error);
     });
   });
 
-  const binanceOrdersPromise = new Promise(resolve => {
+  const binanceOrdersPromise = new Promise((resolve, reject) => {
     https.get('https://www.binance.com/api/v1/ticker/allBookTickers', res => {
       let body = '';
 
@@ -121,6 +127,8 @@ exports.getPrices = function getPrices(diff) {
 
     }).on('error', error => {
       console.log(`Binance order fetch error: ${error}`);
+
+      reject(error);
     });
   });
 
