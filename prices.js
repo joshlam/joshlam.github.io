@@ -1,5 +1,7 @@
 const https = require('https');
 
+const formatDate = require('./date');
+
 let cachedPrices = {};
 
 exports.getCachedPrices = function getCachedPrices() {
@@ -133,7 +135,7 @@ exports.getPrices = function getPrices(diff) {
       bittrexWallets,
       binancePrices,
       binanceOrders,
-      lastUpdated: new Date()
+      lastUpdated: formatDate(new Date())
     };
 
     diff(cachedPrices);

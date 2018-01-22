@@ -1,3 +1,4 @@
+const formatDate = require('./date');
 const { sendNotification } = require('./twilio');
 
 const CRYPTO = [
@@ -109,7 +110,7 @@ exports.diff = function diff(prices) {
         `${currency} is cheaper at ${cheaperExchange}: ${percentage}%`,
         `Bittrex: ${bittrex}, Binance: ${binance}`,
         `Previously the difference was ${diffLog.difference}%`,
-        new Date()
+        formatDate(new Date())
       ].join('\n'))
     }
 
