@@ -114,7 +114,11 @@ exports.diff = function diff(prices) {
       ].join('\n'))
     }
 
-    if (level > 3) urgent.push(`${currency}: ${percentage}%`);
+    if (
+      level > 3
+        && prices.bittrexWallets[currency].walletActive
+        && prices.bittrexPrices[currency].marketActive
+    ) urgent.push(`${currency}: ${percentage}%`);
 
     diffLog.difference = percentage;
     diffLog.level = level;
