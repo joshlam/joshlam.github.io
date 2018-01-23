@@ -2,7 +2,7 @@ const http = require('http');
 
 const { diff, getNotifications } = require('./diff');
 const { getCachedPrices, getPrices } = require('./prices');
-const { registerBind } = require('./twilio');
+const { registerBind, setLastRequestTime } = require('./twilio');
 
 const PORT = 8080;
 
@@ -12,6 +12,8 @@ process.on('uncaughtException', err => {
 
 const requestHandler = (request, response) => {
   console.log(request.url);
+
+  setLastRequestTime(Date.now());
 
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');

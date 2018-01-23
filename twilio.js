@@ -3,6 +3,8 @@ const Twilio = require('twilio');
 
 const config = require('./config');
 
+let lastRequestTime = Date.now();
+
 // Convert keys to camelCase to conform with the twilio-node api definition contract
 function camelCaseKeys(hashmap) {
   const newhashmap = {};
@@ -51,6 +53,10 @@ exports.registerBind = function registerBind(binding) {
 
 // Notify - send a notification from a POST HTTP request
 exports.sendNotification = function sendNotification(notification) {
+  const timeSinceLastRequest = Date.now() - lastRequestTime;
+
+  if (timeSinceLastRequest > 7200000 && timeSinceLastRequest < 25200000) return;
+
   // Create a reference to the user notification service
   const service = getTwilioClient();
 
@@ -86,4 +92,8 @@ function getTwilioClient() {
   );
 
   return service;
+}
+
+exports.setLastRequestTime = function setLastRequestTime(time) {
+  lastRequestTime = time;
 }
