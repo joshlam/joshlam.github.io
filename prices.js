@@ -1,6 +1,7 @@
 const https = require('https');
 
 const formatDate = require('./date');
+const { checkMarkets, checkQueues } = require('./wallet');
 
 let cachedPrices = {};
 
@@ -146,6 +147,8 @@ exports.getPrices = function getPrices(diff) {
       lastUpdated: formatDate(new Date())
     };
 
+    checkMarkets({ bittrex: bittrexWallets, binance: binancePrices });
+    checkQueues(bittrexWallets);
     diff(cachedPrices);
 
     setTimeout(getPrices, 1000, diff);
