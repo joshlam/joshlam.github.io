@@ -133,17 +133,46 @@ exports.getPrices = function getPrices(diff) {
     });
   });
 
+  const binanceWalletsPromise = new Promise((resolve, reject) => {
+    https.get('https://www.binance.com/assetWithdraw/getAllAsset.html', res => {
+      let body = '';
+
+      res.on('data', data => {
+        body += data;
+      });
+
+      res.on('end', () => {
+        resolve(JSON.parse(body).reduce((wallets, wallet) => {
+          wallets[wallet.assetCode] = {
+            confirmations: Number(wallet.confirmTimes),
+            depositsEnabled: wallet.enableCharge,
+            withdrawalsEnabled: wallet.enableWithdraw
+          };
+
+          return wallets;
+        }, {}));
+      });
+
+    }).on('error', error => {
+      console.log(`Binance wallet fetch error: ${error}`);
+
+      reject(error);
+    });
+  });
+
   Promise.all([
     bittrexPricesPromise,
     bittrexWalletsPromise,
     binancePricesPromise,
-    binanceOrdersPromise
-  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders]) => {
+    binanceOrdersPromise,
+    binanceWalletsPromise
+  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets]) => {
     cachedPrices = {
       bittrexPrices,
       bittrexWallets,
       binancePrices,
       binanceOrders,
+      binanceWallets,
       lastUpdated: formatDate(new Date())
     };
 
