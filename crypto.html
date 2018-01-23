@@ -171,6 +171,7 @@
       'NEO',
       'OMG',
       'POWR',
+      'PIVX',
       'QTUM',
       'RCN',
       'RLC',
@@ -213,6 +214,7 @@
       NEO: 'neo',
       OMG: 'omisego',
       POWR: 'power-ledger',
+      PIVX: 'pivx',
       QTUM: 'qtum',
       RCN: 'ripio-credit-network',
       RLC: 'rlc',
@@ -231,7 +233,7 @@
       ZEC: 'zcash'
     };
 
-    const BINANCE = CRYPTO.filter(currency => currency != 'RLC');
+    const BINANCE = CRYPTO.filter(currency => currency != 'PIVX' && currency != 'RLC');
 
     const CRYPTOCOMPARE = { BCH: 'BCC' };
 
@@ -491,7 +493,8 @@
         document.querySelector('.last-updated .time').textContent = new Date();
 
         setTimeout(getPrices, 1000);
-      }).catch(() => {
+      }).catch(e => {
+        console.log(e);
         setTimeout(getPrices, 1500);
       });
     }

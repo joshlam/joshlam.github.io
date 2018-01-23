@@ -25,6 +25,7 @@ const CRYPTO = [
   'NEO',
   'OMG',
   'POWR',
+  'PIVX',
   'QTUM',
   'RCN',
   'RLC',
