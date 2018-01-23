@@ -118,6 +118,7 @@ exports.diff = function diff(prices) {
     if (
       level > 3
         && prices.bittrexWallets[currency].walletActive
+        && prices.bittrexWallets[currency].withdrawQueueDepth < 50
         && prices.bittrexPrices[currency].marketActive
     ) urgent.push(`${currency}: ${percentage}%`);
 
