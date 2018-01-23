@@ -2,12 +2,27 @@ const http = require('http');
 
 const { diff, getNotifications } = require('./diff');
 const { getCachedPrices, getPrices } = require('./prices');
-const { registerBind, setLastRequestTime } = require('./twilio');
+const { registerBind, sendNotification, setLastRequestTime } = require('./twilio');
 
 const PORT = 8080;
 
+const uncaughtExceptions = [];
+let lastExceptionNotification = Date.now();
+
 process.on('uncaughtException', err => {
+  const now = Date.now();
+
   console.log(`Caught exception: ${err}`, err.stack);
+
+  if (now - lastExceptionNotification > 900000) {
+    lastExceptionNotification = now;
+
+    sendNotification({ body: `Caught exception: ${err}`, tag: 'all' }, true);
+  } else {
+    if (uncaughtExceptions.length > 500) uncaughtExceptions.shift();
+
+    uncaughtExceptions.push(err);
+  }
 });
 
 const requestHandler = (request, response) => {
@@ -32,6 +47,10 @@ const requestHandler = (request, response) => {
         response.end(JSON.stringify(data.data));
       });
     });
+  }
+
+  if (request.url.match('\/exceptions')) {
+    response.end(JSON.stringify(uncaughtExceptions));
   }
 
   if (request.url.match('\/notifications')) {

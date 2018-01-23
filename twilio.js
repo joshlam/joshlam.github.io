@@ -52,10 +52,10 @@ exports.registerBind = function registerBind(binding) {
 };
 
 // Notify - send a notification from a POST HTTP request
-exports.sendNotification = function sendNotification(notification) {
+exports.sendNotification = function sendNotification(notification, bypass = false) {
   const timeSinceLastRequest = Date.now() - lastRequestTime;
 
-  if (timeSinceLastRequest > 7200000 && timeSinceLastRequest < 25200000) return;
+  if (timeSinceLastRequest > 7200000 && timeSinceLastRequest < 25200000 && !bypass) return;
 
   // Create a reference to the user notification service
   const service = getTwilioClient();
