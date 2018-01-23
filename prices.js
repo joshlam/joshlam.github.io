@@ -176,7 +176,7 @@ exports.getPrices = function getPrices(diff) {
       lastUpdated: formatDate(new Date())
     };
 
-    checkMarkets({ bittrex: bittrexWallets, binance: binancePrices });
+    checkMarkets({ bittrexWallets, binanceWallets, bittrexPrices, binancePrices });
     checkQueues(bittrexWallets);
     diff(cachedPrices);
 

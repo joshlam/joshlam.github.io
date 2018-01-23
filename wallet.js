@@ -1,37 +1,30 @@
 const { sendNotification } = require('./twilio');
 
+const cache = {};
+
 let lastMarketNotification = Date.now();
 let lastQueueNotification = Date.now() - 300000;
-let bittrexWallets;
-let binanceMarkets;
 
-exports.checkMarkets = function checkMarkets({ bittrex, binance }) {
+function checkExchangeData(key, exchangeData, exchange, notifications) {
+  if (!cache[key]) cache[key] = exchangeData;
+
+  if (Object.keys(cache[key]).length != Object.keys(exchangeData).length) {
+    const newMarkets = Object.keys(exchangeData).filter(currency => !cache[key][currency]);
+    const removedMarkets = Object.keys(cache[key]).filter(currency => !exchangeData[currency]);
+
+    notifications.push(`Potential new ${exchange} market(s): ${newMarkets.join('; ')}`);
+    notifications.push(`Potential removed ${exchange} market(s): ${removedMarkets.join('; ')}`);
+
+    cache[key] = exchangeData;
+  }
+}
+
+exports.checkMarkets = function checkMarkets(exchangeData) {
   const now = Date.now();
   const notifications = [];
 
-  if (!bittrexWallets) bittrexWallets = bittrex;
-
-  if (Object.keys(bittrexWallets).length != Object.keys(bittrex).length) {
-    const newMarkets = Object.keys(bittrex).filter(currency => !bittrexWallets[currency]);
-    const removedMarkets = Object.keys(bittrexWallets).filter(currency => !bittrex[currency]);
-
-    notifications.push(`Potential new Bittrex market(s): ${newMarkets.join('; ')}`);
-    notifications.push(`Potential removed Bittrex market(s): ${removedMarkets.join('; ')}`);
-
-    bittrexWallets = bittrex;
-  }
-
-  if (!binanceMarkets) binanceMarkets = binance;
-
-  if (Object.keys(binanceMarkets).length != Object.keys(binance).length) {
-    const newMarkets = Object.keys(binance).filter(currency => !binanceMarkets[currency]);
-    const removedMarkets = Object.keys(binanceMarkets).filter(currency => !binance[currency]);
-
-    notifications.push(`Potential new Binance market(s): ${newMarkets.join('; ')}`);
-    notifications.push(`Potential removed Binance market(s): ${removedMarkets.join('; ')}`);
-
-    binanceMarkets = binance;
-  }
+  ['bittrexWallets', 'bittrexPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Bittrex', notifications));
+  ['binanceWallets', 'binancePrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
 
   if (notifications.length > 0) {
     lastMarketNotification = now;

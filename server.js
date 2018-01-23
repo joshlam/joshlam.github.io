@@ -7,7 +7,7 @@ const { registerBind, setLastRequestTime } = require('./twilio');
 const PORT = 8080;
 
 process.on('uncaughtException', err => {
-  console.log(`Caught exception: ${err}`);
+  console.log(`Caught exception: ${err}`, err.stack);
 });
 
 const requestHandler = (request, response) => {
