@@ -9,155 +9,105 @@ exports.getCachedPrices = function getCachedPrices() {
   return cachedPrices;
 };
 
+function get(endpoint, reducer) {
+  return new Promise((resolve, reject) => {
+    https.get(endpoint, res => {
+      let body = '';
+
+      res.on('data', data => {
+        body += data;
+      });
+
+      res.on('end', () => {
+        let jsonResponse;
+
+        try {
+          jsonResponse = JSON.parse(body);
+        } catch (error) {
+          console.log(`Parsing error for ${endpoint}: ${error}`);
+          console.log(`Body: ${body}`);
+
+          reject(error);
+
+          return;
+        }
+
+        resolve(
+          (jsonResponse.result ? jsonResponse.result : jsonResponse)
+            .reduce(reducer, {})
+        );
+      });
+    }).on('error', error => {
+      console.log(`Price fetch error for ${endpoint}: ${error}`);
+
+      reject(error);
+    });
+  });
+}
+
 exports.getPrices = function getPrices(diff) {
-  const bittrexPricesPromise = new Promise((resolve, reject) => {
-    https.get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', res => {
-      let body = '';
+  const bittrexPricesPromise = get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', (prices, { Market: market, Summary: summary }) => {
+    if (market.BaseCurrency != 'BTC') return prices;
 
-      res.on('data', data => {
-        body += data;
-      });
+    prices[market.MarketCurrency] = {
+      bid: summary.Bid,
+      ask: summary.Ask,
+      last: summary.Last,
+      marketActive: market.IsActive,
+      notice: market.Notice
+    };
 
-      res.on('end', () => {
-        resolve(JSON.parse(body).result.reduce((prices, { Market: market, Summary: summary }) => {
-          if (market.BaseCurrency != 'BTC') return prices;
-
-          prices[market.MarketCurrency] = {
-            bid: summary.Bid,
-            ask: summary.Ask,
-            last: summary.Last,
-            marketActive: market.IsActive,
-            notice: market.Notice
-          };
-
-          return prices;
-        }, {}));
-      });
-
-    }).on('error', error => {
-      console.log(`Bittrex price fetch error: ${error}`);
-
-      reject(error);
-    });
+    return prices;
   });
 
-  const bittrexWalletsPromise = new Promise((resolve, reject) => {
-    https.get('https://bittrex.com/api/v2.0/pub/currencies/GetWalletHealth', res => {
-      let body = '';
+  const bittrexWalletsPromise = get('https://bittrex.com/api/v2.0/pub/currencies/GetWalletHealth', (statuses, status) => {
+    const currency = status.Currency.Currency;
 
-      res.on('data', data => {
-        body += data;
-      });
+    statuses[currency] = {
+      depositQueueDepth: status.Health.DepositQueueDepth,
+      withdrawQueueDepth: status.Health.WithdrawQueueDepth,
+      lastUpdated: status.Health.MinutesSinceBHUpdated,
+      walletActive: status.Health.IsActive,
+      confirmations: status.Currency.MinConfirmation,
+      notice: status.Currency.Notice
+    };
 
-      res.on('end', () => {
-        const derp =
-        resolve(JSON.parse(body).result.reduce((statuses, status) => {
-          const currency = status.Currency.Currency;
-
-          statuses[currency] = {
-            depositQueueDepth: status.Health.DepositQueueDepth,
-            withdrawQueueDepth: status.Health.WithdrawQueueDepth,
-            lastUpdated: status.Health.MinutesSinceBHUpdated,
-            walletActive: status.Health.IsActive,
-            confirmations: status.Currency.MinConfirmation,
-            notice: status.Currency.Notice
-          };
-
-          return statuses;
-        }, {}));
-      });
-
-    }).on('error', error => {
-      console.log(`Bittrex wallet fetch error: ${error}`);
-
-      reject(error);
-    });
+    return statuses;
   });
 
-  const binancePricesPromise = new Promise((resolve, reject) => {
-    https.get('https://www.binance.com/api/v1/ticker/allPrices', res => {
-      let body = '';
+  const binancePricesPromise = get('https://www.binance.com/api/v1/ticker/allPrices', (prices, market) => {
+    if (!market.symbol.match('BTC')) return prices;
 
-      res.on('data', data => {
-        body += data;
-      });
+    const currency = market.symbol.split('BTC')[0];
 
-      res.on('end', () => {
-        resolve(JSON.parse(body).reduce((prices, market) => {
-          if (!market.symbol.match('BTC')) return prices;
+    prices[currency] = Number(market.price);
 
-          const currency = market.symbol.split('BTC')[0];
-
-          prices[currency] = Number(market.price);
-
-          return prices;
-        }, {}));
-      });
-
-    }).on('error', error => {
-      console.log(`Binance price fetch error: ${error}`);
-
-      reject(error);
-    });
+    return prices;
   });
 
-  const binanceOrdersPromise = new Promise((resolve, reject) => {
-    https.get('https://www.binance.com/api/v1/ticker/allBookTickers', res => {
-      let body = '';
+  const binanceOrdersPromise = get('https://www.binance.com/api/v1/ticker/allBookTickers', (prices, market) => {
+    if (!market.symbol.match('BTC')) return prices;
 
-      res.on('data', data => {
-        body += data;
-      });
+    const currency = market.symbol.split('BTC')[0];
 
-      res.on('end', () => {
-        resolve(JSON.parse(body).reduce((prices, market) => {
-          if (!market.symbol.match('BTC')) return prices;
+    prices[currency] = {
+      bidPrice: Number(market.bidPrice),
+      bidQty: Number(market.bidQty),
+      askPrice: Number(market.askPrice),
+      askQty: Number(market.askQty)
+    };
 
-          const currency = market.symbol.split('BTC')[0];
-
-          prices[currency] = {
-            bidPrice: Number(market.bidPrice),
-            bidQty: Number(market.bidQty),
-            askPrice: Number(market.askPrice),
-            askQty: Number(market.askQty)
-          };
-
-          return prices;
-        }, {}));
-      });
-
-    }).on('error', error => {
-      console.log(`Binance order fetch error: ${error}`);
-
-      reject(error);
-    });
+    return prices;
   });
 
-  const binanceWalletsPromise = new Promise((resolve, reject) => {
-    https.get('https://www.binance.com/assetWithdraw/getAllAsset.html', res => {
-      let body = '';
+  const binanceWalletsPromise = get('https://www.binance.com/assetWithdraw/getAllAsset.html', (wallets, wallet) => {
+    wallets[wallet.assetCode] = {
+      confirmations: Number(wallet.confirmTimes),
+      depositsEnabled: wallet.enableCharge,
+      withdrawalsEnabled: wallet.enableWithdraw
+    };
 
-      res.on('data', data => {
-        body += data;
-      });
-
-      res.on('end', () => {
-        resolve(JSON.parse(body).reduce((wallets, wallet) => {
-          wallets[wallet.assetCode] = {
-            confirmations: Number(wallet.confirmTimes),
-            depositsEnabled: wallet.enableCharge,
-            withdrawalsEnabled: wallet.enableWithdraw
-          };
-
-          return wallets;
-        }, {}));
-      });
-
-    }).on('error', error => {
-      console.log(`Binance wallet fetch error: ${error}`);
-
-      reject(error);
-    });
+    return wallets;
   });
 
   Promise.all([
