@@ -128,9 +128,13 @@ exports.getPrices = function getPrices(diff) {
       lastUpdated: formatDate(new Date())
     };
 
-    checkMarkets({ bittrexWallets, binanceWallets, bittrexPrices, binancePrices });
-    checkQueues(bittrexWallets);
-    diff(cachedPrices);
+    try {
+      checkMarkets({ bittrexWallets, binanceWallets, bittrexPrices, binancePrices });
+      checkQueues(bittrexWallets);
+      diff(cachedPrices);
+    } catch (error) {
+      console.log(`Error in market data analysis: ${error}`);
+    }
 
     setTimeout(getPrices, 1000, diff);
   }).catch(error => {
