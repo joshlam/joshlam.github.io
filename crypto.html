@@ -117,7 +117,7 @@
     let notificationsEnabled = Notification.permission === 'granted';
 
     if (!notificationsEnabled) {
-      Notification.requestPermission().then(result => {
+      const permissionCallback = result => {
         if (result === 'denied') {
           console.log('Permission wasn\'t granted. Allow a retry.');
 
@@ -131,7 +131,11 @@
         }
 
         notificationsEnabled = true;
-      });
+      };
+
+      const request = Notification.requestPermission(permissionCallback);
+
+      if (request && 'then' in request) request.then(permissionCallback);
     }
 
     const usdPrices = document.querySelector('.usd-prices');
