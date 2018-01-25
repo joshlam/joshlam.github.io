@@ -40,8 +40,6 @@ exports.checkQueues = function checkQueues(wallets) {
   const notifications = [];
 
   Object.keys(wallets).forEach(currency => {
-    if (currency === 'TROLL') return;
-
     const { depositQueueDepth, withdrawQueueDepth } = wallets[currency];
 
     if (depositQueueDepth > 5) {

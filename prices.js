@@ -63,6 +63,8 @@ exports.getPrices = function getPrices(diff) {
   const bittrexWalletsPromise = get('https://bittrex.com/api/v2.0/pub/currencies/GetWalletHealth', (statuses, status) => {
     const currency = status.Currency.Currency;
 
+    if (currency === 'TROLL') return statuses;
+
     statuses[currency] = {
       depositQueueDepth: status.Health.DepositQueueDepth,
       withdrawQueueDepth: status.Health.WithdrawQueueDepth,
