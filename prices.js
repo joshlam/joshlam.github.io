@@ -2,12 +2,25 @@ const https = require('https');
 
 const { CRYPTO, TIME } = require('./constants');
 const formatDate = require('./date');
+const { sendNotification } = require('./twilio');
 const { checkMarkets, checkQueues } = require('./wallet');
 
 let cachedPrices = {};
 let lastUpdatedDateNotification = Date.now();
 
 exports.getCachedPrices = function getCachedPrices(denormalized) {
+  const now = Date.now();
+  const timeSinceLastUpdate = now - cachedPrices.lastUpdated;
+
+  if (
+    timeSinceLastUpdate > 10 * TIME.MINUTE
+      && now - lastUpdatedDateNotification > 30 * TIME.MINUTE
+  ) {
+    lastUpdatedDateNotification = now;
+
+    sendNotification(`Price fetch loop broken for ${timeSinceLastUpdate / TIME.MINUTE} minutes`);
+  }
+
   return Object.assign({},
     denormalized ? cachedPrices.exchangeData : cachedPrices.normalized,
     { lastUpdated: formatDate(cachedPrices.lastUpdated) }
