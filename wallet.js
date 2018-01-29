@@ -12,8 +12,15 @@ function checkExchangeData(key, exchangeData, exchange, notifications) {
     const newMarkets = Object.keys(exchangeData).filter(currency => !cache[key][currency]);
     const removedMarkets = Object.keys(cache[key]).filter(currency => !exchangeData[currency]);
 
-    notifications.push(`Potential new ${exchange} market(s): ${newMarkets.join('; ')}`);
-    notifications.push(`Potential removed ${exchange} market(s): ${removedMarkets.join('; ')}`);
+    if (exchange === 'Kucoin') {
+      console.log(`Kucoin market cached: ${JSON.stringify(cache[key])}`);
+      console.log(`Kucoin market current: ${JSON.stringify(exchangeData)}`);
+      console.log(`Potential new ${exchange} market(s): ${newMarkets.join('; ')}`);
+      console.log(`Potential removed ${exchange} market(s): ${removedMarkets.join('; ')}`);
+    } else {
+      notifications.push(`Potential new ${exchange} market(s): ${newMarkets.join('; ')}`);
+      notifications.push(`Potential removed ${exchange} market(s): ${removedMarkets.join('; ')}`);
+    }
 
     cache[key] = exchangeData;
   }

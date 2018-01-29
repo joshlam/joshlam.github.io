@@ -1,6 +1,6 @@
 const https = require('https');
 
-const CRYPTO = require('./constants');
+const { CRYPTO } = require('./constants');
 const formatDate = require('./date');
 const { checkMarkets, checkQueues } = require('./wallet');
 
