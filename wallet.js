@@ -40,7 +40,7 @@ exports.checkMarkets = function checkMarkets(exchangeData) {
 
     console.log('Sending notifications', notifications.join('; '));
 
-    sendNotification({ body: notifications.join('; '), tag: 'all' });
+    sendNotification(notifications.join('; '));
   }
 };
 
@@ -69,6 +69,6 @@ exports.checkQueues = function checkQueues(wallets) {
 
     console.log('Sending notifications', notifications.join('; '));
 
-    sendNotification({ body: notifications.join('; '), tag: 'all' });
+    sendNotification(notifications.join('; '));
   }
 };

@@ -62,7 +62,7 @@ exports.sendNotification = function sendNotification(notification, bypass = fals
   const service = getTwilioClient();
 
   // Send a notification
-  return service.notifications.create(camelCaseKeys(notification)).then(message => {
+  return service.notifications.create(camelCaseKeys({ body: notification, tag: 'all' })).then(message => {
     console.log(message);
 
     return {

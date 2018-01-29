@@ -18,7 +18,7 @@ process.on('uncaughtException', err => {
   if (now - lastExceptionNotification > 15 * TIME.MINUTE) {
     lastExceptionNotification = now;
 
-    sendNotification({ body: `Caught exception: ${err}`, tag: 'all' }, true);
+    sendNotification(`Caught exception: ${err}`, true);
   } else {
     if (uncaughtExceptions.length > 500) uncaughtExceptions.shift();
 

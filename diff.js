@@ -132,12 +132,12 @@ exports.diff = function diff(prices) {
 
     console.log('Sending notifications', notifications.join('; '));
 
-    sendNotification({ body: notifications.join('; '), tag: 'all' });
+    sendNotification(notifications.join('; '));
   } else if (now - lastNotification > 30 * TIME.SECOND && urgent.length > 0) {
     lastNotification = now;
 
     console.log('Sending urgent notifications', urgent.join('; '));
 
-    sendNotification({ body: urgent.join('; '), tag: 'all' });
+    sendNotification(urgent.join('; '));
   }
 }
