@@ -6,7 +6,7 @@ const CRYPTO = [
   'ADX',
   'ARK',
   'BAT',
-  'BCC',
+  'BCH',
   'BNT',
   'BTG',
   'DASH',

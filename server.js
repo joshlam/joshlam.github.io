@@ -59,7 +59,7 @@ const requestHandler = (request, response) => {
 
   if (!request.url.match('\/crypto') || !request.url.match('arbitrage')) return;
 
-  response.end(JSON.stringify(getCachedPrices()));
+  response.end(JSON.stringify(getCachedPrices(request.url.match('denormalized'))));
 }
 
 const server = http.createServer(requestHandler);

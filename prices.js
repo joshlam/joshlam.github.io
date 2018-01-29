@@ -1,12 +1,16 @@
 const https = require('https');
 
+const CRYPTO = require('./constants');
 const formatDate = require('./date');
 const { checkMarkets, checkQueues } = require('./wallet');
 
 let cachedPrices = {};
 
-exports.getCachedPrices = function getCachedPrices() {
-  return cachedPrices;
+exports.getCachedPrices = function getCachedPrices(denormalized) {
+  return Object.assign({},
+    denormalized ? cachedPrices.exchangeData : cachedPrices.normalized,
+    { lastUpdated: cachedPrices.lastUpdated }
+  );
 };
 
 function get(endpoint, reducer) {
@@ -32,10 +36,15 @@ function get(endpoint, reducer) {
           return;
         }
 
-        resolve(
-          (jsonResponse.result ? jsonResponse.result : jsonResponse)
-            .reduce(reducer, {})
-        );
+        let response = jsonResponse;
+
+        if (jsonResponse.result) {
+          response = jsonResponse.result;
+        } else if (jsonResponse.data) {
+          response = jsonResponse.data;
+        }
+
+        resolve(response.reduce(reducer, {}));
       });
     }).on('error', error => {
       console.log(`Price fetch error for ${endpoint}: ${error}`);
@@ -45,11 +54,74 @@ function get(endpoint, reducer) {
   });
 }
 
+function normalize(currency) {
+  return currency === 'BCC' ? 'BCH' : currency;
+}
+
+function normalizeExchangeData({
+  bittrexPrices,
+  bittrexWallets,
+  binancePrices,
+  binanceOrders,
+  binanceWallets,
+  kucoinPrices,
+  kucoinWallets
+}) {
+  return CRYPTO.reduce((currencies, currency) => {
+    const exchangeData = {};
+
+    if (bittrexPrices[currency]) {
+      exchangeData.bittrex = {
+        bid: bittrexPrices[currency].bid,
+        ask: bittrexPrices[currency].ask,
+        last: bittrexPrices[currency].last,
+        marketActive: bittrexPrices[currency].marketActive,
+        confirmations: bittrexWallets[currency].confirmations,
+        depositsEnabled: bittrexWallets[currency].walletActive,
+        withdrawalsEnabled: bittrexWallets[currency].walletActive,
+        notice: bittrexPrices[currency].notice || bittrexWallets[currency].notice
+          ? `${bittrexPrices[currency].notice}; ${bittrexWallets[currency].notice}`
+          : null
+      }
+    }
+
+    if (binancePrices[currency]) {
+      exchangeData.binance = {
+        bid: binanceOrders[currency].bid,
+        ask: binanceOrders[currency].ask,
+        last: binancePrices[currency],
+        marketActive: true,
+        confirmations: binanceWallets[currency].confirmations,
+        depositsEnabled: binanceWallets[currency].depositsEnabled,
+        withdrawalsEnabled: binanceWallets[currency].withdrawalsEnabled,
+        notice: binanceWallets[currency].notice
+      }
+    }
+
+    if (kucoinPrices[currency]) {
+      exchangeData.kucoin = {
+        bid: kucoinPrices[currency].bid,
+        ask: kucoinPrices[currency].ask,
+        last: kucoinPrices[currency].last,
+        marketActive: kucoinPrices[currency].marketActive,
+        confirmations: kucoinWallets[currency].confirmations,
+        depositsEnabled: kucoinWallets[currency].depositsEnabled,
+        withdrawalsEnabled: kucoinWallets[currency].withdrawalsEnabled,
+        notice: kucoinWallets[currency].notice
+      }
+    }
+
+    currencies[currency] = exchangeData;
+
+    return currencies;
+  }, {});
+}
+
 exports.getPrices = function getPrices(diff) {
   const bittrexPricesPromise = get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', (prices, { Market: market, Summary: summary }) => {
     if (market.BaseCurrency != 'BTC') return prices;
 
-    prices[market.MarketCurrency] = {
+    prices[normalize(market.MarketCurrency)] = {
       bid: summary.Bid,
       ask: summary.Ask,
       last: summary.Last,
@@ -65,7 +137,7 @@ exports.getPrices = function getPrices(diff) {
 
     if (currency === 'TROLL') return statuses;
 
-    statuses[currency] = {
+    statuses[normalize(currency)] = {
       depositQueueDepth: status.Health.DepositQueueDepth,
       withdrawQueueDepth: status.Health.WithdrawQueueDepth,
       lastUpdated: status.Health.MinutesSinceBHUpdated,
@@ -82,7 +154,7 @@ exports.getPrices = function getPrices(diff) {
 
     const currency = market.symbol.split('BTC')[0];
 
-    prices[currency] = Number(market.price);
+    prices[normalize(currency)] = Number(market.price);
 
     return prices;
   });
@@ -92,10 +164,10 @@ exports.getPrices = function getPrices(diff) {
 
     const currency = market.symbol.split('BTC')[0];
 
-    prices[currency] = {
-      bidPrice: Number(market.bidPrice),
+    prices[normalize(currency)] = {
+      bid: Number(market.bidPrice),
       bidQty: Number(market.bidQty),
-      askPrice: Number(market.askPrice),
+      ask: Number(market.askPrice),
       askQty: Number(market.askQty)
     };
 
@@ -103,10 +175,35 @@ exports.getPrices = function getPrices(diff) {
   });
 
   const binanceWalletsPromise = get('https://www.binance.com/assetWithdraw/getAllAsset.html', (wallets, wallet) => {
-    wallets[wallet.assetCode] = {
+    wallets[normalize(wallet.assetCode)] = {
       confirmations: Number(wallet.confirmTimes),
       depositsEnabled: wallet.enableCharge,
-      withdrawalsEnabled: wallet.enableWithdraw
+      withdrawalsEnabled: wallet.enableWithdraw,
+      notice: wallet.depositTipStatus ? wallet.depositTipEn : null
+    };
+
+    return wallets;
+  });
+
+  const kucoinPricesPromise = get('https://api.kucoin.com/v1/market/open/symbols', (prices, market) => {
+    if (market.coinTypePair != 'BTC') return prices;
+
+    prices[normalize(market.coinType)] = {
+      bid: market.buy,
+      ask: market.sell,
+      last: market.lastDealPrice,
+      marketActive: market.trading
+    };
+
+    return prices;
+  });
+
+  const kucoinWalletsPromise = get('https://api.kucoin.com/v1/market/open/coins', (wallets, wallet) => {
+    wallets[normalize(wallet.coin)] = {
+      confirmations: wallet.confirmationCount,
+      depositsEnabled: wallet.enableDeposit,
+      withdrawalsEnabled: wallet.enableWithdraw,
+      notice: wallet.depositRemark || wallet.withdrawRemark ? `${wallet.depositRemark}; ${wallet.withdrawRemark}` : null
     };
 
     return wallets;
@@ -117,21 +214,30 @@ exports.getPrices = function getPrices(diff) {
     bittrexWalletsPromise,
     binancePricesPromise,
     binanceOrdersPromise,
-    binanceWalletsPromise
-  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets]) => {
-    cachedPrices = {
+    binanceWalletsPromise,
+    kucoinPricesPromise,
+    kucoinWalletsPromise
+  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets, kucoinPrices, kucoinWallets]) => {
+    const exchangeData =  {
       bittrexPrices,
       bittrexWallets,
       binancePrices,
       binanceOrders,
       binanceWallets,
+      kucoinPrices,
+      kucoinWallets
+    };
+
+    cachedPrices = {
+      exchangeData,
+      normalized: normalizeExchangeData(exchangeData),
       lastUpdated: formatDate(new Date())
     };
 
     try {
-      checkMarkets({ bittrexWallets, binanceWallets, bittrexPrices, binancePrices });
+      checkMarkets({ bittrexWallets, binanceWallets, kucoinWallets, bittrexPrices, binancePrices, kucoinPrices });
       checkQueues(bittrexWallets);
-      diff(cachedPrices);
+      diff(exchangeData);
     } catch (error) {
       console.log(`Error in market data analysis: ${error}`);
     }

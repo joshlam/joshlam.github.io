@@ -7,8 +7,7 @@
       color: blue;
     }
 
-    .bittrex-status,
-    .binance-status {
+    .status {
       text-align: center;
     }
 
@@ -76,6 +75,8 @@
     <a target="_blank" href="https://bittrex.com/Balance">Bittrex wallets</a>
     <a target="_blank" href="https://bittrex.com/Status">Bittrex wallet statuses</a>
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
+    <a target="_blank" href="https://www.kucoin.com/#/user/account/dashboard">Kucoin wallets</a>
+
   </div>
 
   <div class="last-updated">
@@ -90,12 +91,15 @@
   <table class="crypto">
     <tr>
       <th>Currency</th>
+      <th>Change</th>
       <th>Bittrex</th>
       <th>Status</th>
       <th>Binance</th>
       <th>Status</th>
-      <th>Change</th>
       <th>Coinbase</th>
+      <th>Difference</th>
+      <th>Kucoin</th>
+      <th>Status</th>
       <th>Difference</th>
     </tr>
   </table>
@@ -110,6 +114,13 @@
       <li>Use Binance wallet status for determining notifications</li>
       <li>Add RLC and PIVX % change when supported by CryptoCompare</li>
       <li>Add wallets</li>
+      <li>Add ETH market diffs</li>
+      <li>Add USDT market diffs</li>
+      <li>Add Kraken</li>
+      <li>Automatically generate list of coins shared between exchanges</li>
+      <li>Alert when last updated is greater than certain threshold</li>
+      <li>Extract out JS from HTML page</li>
+      <li>Compute diff with min(ask) - max(bid) instead of last prices
     </ul>
   </div>
 
@@ -194,44 +205,110 @@
       'XRP',
       'XVG',
       'XZC',
-      'ZEC'
+      'ZEC',
+      'AION',
+      'AMB',
+      'BCD',
+      'BCPT',
+      'CVC',
+      'DGB',
+      'ENJ',
+      'EOS',
+      'EVX',
+      'GAS',
+      'GVT',
+      'HSR',
+      'ICN',
+      'INS',
+      'KNC',
+      'LEND',
+      'MOD',
+      'MTH',
+      'NEBL',
+      'NULS',
+      'PAY',
+      'POE',
+      'PPT',
+      'QSP',
+      'RDN',
+      'REQ',
+      'SNM',
+      'SUB',
+      'UKG',
+      'VEN',
+      'WTC'
     ];
 
     const COINMARKETCAP = {
       ADA: 'cardano',
       ADX: 'adx-net',
+      AION: 'aion',
+      AMB: 'amber',
       ARK: 'ark',
       BAT: 'basic-attention-token',
+      BCD: 'bitcoin-diamond',
       BCH: 'bitcoin-cash',
+      BCPT: 'blockmason',
       BNT: 'bancor',
       BTG: 'bitcoin-gold',
+      CVC: 'civic',
       DASH: 'dash',
+      DGB: 'digibyte',
       DNT: 'district0x',
+      DOGE: 'dogecoin',
       ENG: 'enigma-project',
+      ENJ: 'enjin-coin',
+      EOS: 'eos',
       ETC: 'ethereum-classic',
+      EVX: 'everex',
       ETH: 'ethereum',
       FUN: 'funfair',
+      GAS: 'gas',
+      GNO: 'gnosis-gno',
+      GVT: 'genesis-vision',
+      HSR: 'hshare',
+      ICN: 'iconomi',
+      INS: 'ins-ecosystem',
       KMD: 'komodo',
+      KNC: 'kyber-network',
+      LEND: 'ethlend',
       LSK: 'lisk',
       LTC: 'litecoin',
       LUN: 'lunyr',
       MANA: 'decentraland',
       MCO: 'monaco',
+      MLN: 'melon',
+      MOD: 'modum',
+      MTH: 'monetha',
       NAV: 'nav-coin',
+      NEBL: 'neblio',
       NEO: 'neo',
+      NULS: 'nuls',
       OMG: 'omisego',
-      POWR: 'power-ledger',
+      PAY: 'tenx',
       PIVX: 'pivx',
+      POE: 'poet',
+      POWR: 'power-ledger',
+      PPT: 'populous',
+      QSP: 'quantstamp',
       QTUM: 'qtum',
       RCN: 'ripio-credit-network',
+      RDN: 'raiden-network-token',
+      REP: 'augur',
+      REQ: 'request-network',
       RLC: 'rlc',
       SALT: 'salt',
+      SNM: 'sonm',
       SNT: 'status',
       STORJ: 'storj',
       STRAT: 'stratis',
+      SUB: 'substratum',
+      UKG: 'unikoin-gold',
+      VEN: 'vechain',
       VIB: 'viberate',
       WAVES: 'waves',
       WINGS: 'wings',
+      WTC: 'walton',
       XLM: 'stellar',
       XMR: 'monero',
       XRP: 'ripple',
@@ -240,9 +317,9 @@
       ZEC: 'zcash'
     };
 
-    const BINANCE = CRYPTO.filter(currency => currency != 'PIVX' && currency != 'RLC');
+    const DENORMALIZE = { BCH: 'BCC' };
 
-    const CRYPTOCOMPARE = { BCH: 'BCC' };
+    const EXCHANGES = ['bittrex', 'binance', 'kucoin'];
 
     const table = document.querySelector('.crypto');
 
@@ -251,17 +328,20 @@
 
       row.classList.add(currency);
 
-      const exchangeName = CRYPTOCOMPARE[currency] ? CRYPTOCOMPARE[currency] : currency;
+      const exchangeName = DENORMALIZE[currency] ? DENORMALIZE[currency] : currency;
 
       row.innerHTML = `
-        <td class="currency"><a target="_blank" href="https://coinmarketcap.com/currencies/${COINMARKETCAP[currency]}">${currency}</a></td>
+        <td class="currency"><a target="_blank" href="https://coinmarketcap.com/currencies/${COINMARKETCAP[currency] || currency}">${currency}</a></td>
+        <td class="change"></td>
         <td class="bittrex"><a target="_blank" href="https://bittrex.com/Market/Index?MarketName=BTC-${exchangeName}"></a></td>
-        <td class="bittrex-status"></td>
+        <td class="bittrex-status status"></td>
         <td class="binance"><a target="_blank" href="https://www.binance.com/trade.html?symbol=${exchangeName}_BTC"></a></td>
-        <td class="binance-status"></td>
-        <td class="binance-change"></td>
+        <td class="binance-status status"></td>
         <td class="coinbase"><a target="_blank" href="https://www.gdax.com/trade/${currency}-BTC"></a></td>
         <td class="difference"></td>
+        <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${currency}-BTC"></a></td>
+        <td class="kucoin-status status"></td>
+        <td class="difference-all"></td>
       `;
 
       table.appendChild(row);
@@ -317,17 +397,46 @@
       });
     }
 
+    function getChanges() {
+      const half = Math.floor(CRYPTO.length / 2);
+      const firstHalf = CRYPTO.slice(0, half).join();
+      const secondHalf = CRYPTO.slice(half).join();
+
+      return Promise.all([
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${firstHalf}&tsyms=BTC`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => prices),
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${secondHalf}&tsyms=BTC`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => prices)
+      ]).then(([firstHalfPrices, secondHalfPrices]) => {
+        const prices = Object.assign({}, firstHalfPrices, secondHalfPrices);
+
+        CRYPTO.forEach(currency => {
+          const change = prices[currency].BTC.CHANGEPCT24HOUR;
+          const changeEntry = document.querySelector(`.${currency} .change`);
+
+          changeEntry.classList.remove('gain', 'loss');
+          changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+
+          changeEntry.textContent = `${change.toFixed(2)}%`;
+        });
+
+        setTimeout(getChanges, 2000);
+      }).catch(() => {
+        setTimeout(getChanges, 3000);
+      });
+    }
+
     function createTooltip(toggle, text) {
       const tooltip = document.createElement('div');
 
       tooltip.classList.add('tooltip');
-
       tooltip.textContent = toggle;
 
       const tooltipText = document.createElement('span');
 
       tooltipText.classList.add('tooltiptext');
-
       tooltipText.textContent = text;
 
       tooltip.appendChild(tooltipText);
@@ -336,192 +445,110 @@
     }
 
     function getPrices() {
-      const exchangePrices = CRYPTO.reduce((prices, currency) => {
-        prices[currency] = {};
-
-        return prices;
-      }, {});
-
       const inactive = {};
 
-      Promise.all([
-        // fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${CRYPTO.join()}&tsyms=BTC&e=Bittrex`)
-        //   .then(response => response.json())
-        //   .then(({ RAW: prices }) => {
-        //     CRYPTO.forEach(currency => {
-        //       const entry = document.querySelector(`.${currency} .bittrex a`);
-        //       const price = prices[currency].BTC.PRICE;
-        //       const change = prices[currency].BTC.CHANGEPCT24HOUR;
+      fetch('https://crypto-191318.appspot.com/crypto?arbitrage=true')
+        .then(response => response.json())
+        .then(prices => {
+          const notifications = [];
 
-        //       entry.textContent = price;
-        //       exchangePrices[currency].bittrex = price;
+          CRYPTO.forEach(currency => {
+            EXCHANGES.forEach(exchange => {
+              const market = prices[currency][exchange];
 
-        //       const changeEntry = document.querySelector(`.${currency} .bittrex-change`);
+              if (!market) return;
 
-        //       changeEntry.classList.remove('gain', 'loss');
-        //       changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+              const priceEntry = document.querySelector(`.${currency} .${exchange} a`);
+              const price = market.last;
 
-        //       changeEntry.textContent = `${change.toFixed(2)}%`;
-        //     });
-        //   }),
-        fetch('https://crypto-191318.appspot.com/crypto?arbitrage=true')
-          .then(response => response.json())
-          .then(({ bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets }) => {
-            CRYPTO.forEach(currency => {
-              const exchangeName = CRYPTOCOMPARE[currency] ? CRYPTOCOMPARE[currency] : currency;
+              priceEntry.innerHTML = '';
 
-              const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
-              const bittrexMarket = bittrexPrices[exchangeName];
-              const bittrexWallet = bittrexWallets[exchangeName];
-              const bittrexPrice = bittrexMarket.last;
-
-              bittrexEntry.innerHTML = '';
-
-              bittrexEntry.appendChild(
+              priceEntry.appendChild(
                 createTooltip(
-                  bittrexPrice,
+                  price,
                   `
-                    bid: ${bittrexMarket.bid},
-                    ask: ${bittrexMarket.ask},
-                    confirmations: ${bittrexWallet.confirmations},
-                    block height updated: ${bittrexWallet.lastUpdated}
+                    Bid: ${market.bid},
+                    Ask: ${market.ask},
+                    Confirmations: ${market.confirmations}
                   `
                 )
               );
 
-              exchangePrices[currency].bittrex = bittrexPrice;
+              const statusEntry = document.querySelector(`.${currency} .${exchange}-status`);
 
-              const bittrexStatus = document.querySelector(`.${currency} .bittrex-status`);
+              statusEntry.innerHTML = '';
 
-              bittrexStatus.innerHTML = '';
+              if (market.marketActive && market.depositsEnabled && market.withdrawalsEnabled) return;
 
-              if (!bittrexMarket.marketActive || !bittrexWallet.walletActive) {
-                bittrexStatus.appendChild(
-                  createTooltip(
-                    '!',
-                    `${bittrexMarket.notice}; ${bittrexWallet.notice}`
-                  )
-                );
-
-                inactive[currency] = true;
-              }
-
-              const binanceEntry = document.querySelector(`.${currency} .binance a`);
-              const binancePrice = binancePrices[exchangeName];
-              const binanceOrder = binanceOrders[exchangeName];
-              const binanceWallet = binanceWallets[exchangeName];
-
-              binanceEntry.innerHTML = '';
-
-              binanceEntry.appendChild(
+              statusEntry.appendChild(
                 createTooltip(
-                  binancePrice,
+                  '!',
                   `
-                    bid: ${binanceOrder.bidPrice},
-                    bidQty: ${binanceOrder.bidQty},
-                    bidBTC: ${(binanceOrder.bidPrice * binanceOrder.bidQty).toFixed(3)}
-                    ask: ${binanceOrder.askPrice},
-                    askQty: ${binanceOrder.askQty},
-                    askBTC: ${(binanceOrder.askPrice * binanceOrder.askQty).toFixed(3)},
-                    confirmations: ${binanceWallet.confirmations}
+                    Deposits: ${market.depositsEnabled},
+                    Withdrawals: ${market.withdrawalsEnabled},
+                    Notice: ${market.notice}
                   `
                 )
               );
 
-              exchangePrices[currency].binance = binancePrice;
-
-              const binanceStatus = document.querySelector(`.${currency} .binance-status`);
-
-              binanceStatus.innerHTML = '';
-
-              if (!binanceWallet.depositsEnabled || !binanceWallet.withdrawalsEnabled) {
-                binanceStatus.appendChild(
-                  createTooltip(
-                    '!',
-                    `Deposits: ${binanceWallet.depositsEnabled}; Withdrawals: ${binanceWallet.withdrawalsEnabled}`
-                  )
-                );
-              }
+              inactive[currency] = true;
             });
-          }),
-        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${BINANCE.join()}&tsyms=BTC&e=Binance`)
-          .then(response => response.json())
-          .then(({ RAW: prices }) => {
-            BINANCE.forEach(currency => {
-              const entry = document.querySelector(`.${currency} .binance a`);
-              // const price = prices[currency].BTC.PRICE;
-              const change = prices[currency].BTC.CHANGEPCT24HOUR;
 
-              // entry.textContent = price;
-              // exchangePrices[currency].binance = price;
+            const bittrex = prices[currency].bittrex && prices[currency].bittrex.last;
+            const binance = prices[currency].binance && prices[currency].binance.last;
 
-              const changeEntry = document.querySelector(`.${currency} .binance-change`);
+            if (!bittrex || !binance) return;
 
-              changeEntry.classList.remove('gain', 'loss');
-              changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+            const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
+            const binanceEntry = document.querySelector(`.${currency} .binance a`);
 
-              changeEntry.textContent = `${change.toFixed(2)}%`;
-            });
-          })
-      ]).then(() => {
-        const notifications = [];
+            [bittrexEntry, binanceEntry].forEach(entry => entry.classList.remove('higher', 'lower'));
 
-        CRYPTO.forEach(currency => {
-          const bittrex = exchangePrices[currency].bittrex;
-          const binance = exchangePrices[currency].binance;
+            const difference = bittrex - binance;
 
-          if (!bittrex || !binance) return;
+            if (difference > 0) {
+              bittrexEntry.classList.add('higher');
+              binanceEntry.classList.add('lower');
+            } else {
+              bittrexEntry.classList.add('lower');
+              binanceEntry.classList.add('higher');
+            }
 
-          const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
-          const binanceEntry = document.querySelector(`.${currency} .binance a`);
+            const entry = document.querySelector(`.${currency} .difference`);
+            const percentage = Math.abs(difference)/Math.min(bittrex, binance) * 100;
 
-          [bittrexEntry, binanceEntry].forEach(entry => entry.classList.remove('higher', 'lower'));
+            entry.textContent = `${percentage.toFixed(2)}%`;
+            entry.classList.remove('levelOne', 'levelTwo', 'levelThree');
 
-          const difference = bittrex - binance;
+            if (percentage > 4.5) {
+              entry.classList.add('levelThree');
+            } else if (percentage > 3) {
+              entry.classList.add('levelTwo');
+            } else if (percentage > 1) {
+              entry.classList.add('levelOne');
+            }
 
-          if (difference > 0) {
-            bittrexEntry.classList.add('higher');
-            binanceEntry.classList.add('lower');
-          } else {
-            bittrexEntry.classList.add('lower');
-            binanceEntry.classList.add('higher');
+            if (percentage > 3 && !inactive[currency]) {
+              notifications.push(`${currency}: ${percentage}%`);
+            }
+          });
+
+          if (notificationsEnabled && notifications.length > 0) {
+            new Notification('Price Alerts', { body: notifications.join('; ') });
           }
 
-          const entry = document.querySelector(`.${currency} .difference`);
+          document.querySelector('.last-updated .time').textContent = new Date();
 
-          const percentage = Math.abs(difference)/Math.min(bittrex, binance) * 100;
+          setTimeout(getPrices, 1000);
+        }).catch(error => {
+          console.log(error);
 
-          entry.textContent = `${percentage.toFixed(2)}%`;
-
-          entry.classList.remove('levelOne', 'levelTwo', 'levelThree');
-
-          if (percentage > 4.5) {
-            entry.classList.add('levelThree');
-          } else if (percentage > 3) {
-            entry.classList.add('levelTwo');
-          } else if (percentage > 1) {
-            entry.classList.add('levelOne');
-          }
-
-          if (percentage > 3 && !inactive[currency]) {
-            notifications.push(`${currency}: ${percentage}%`);
-          }
-        });
-
-        if (notificationsEnabled && notifications.length > 0) {
-          new Notification('Price Alerts', { body: notifications.join('; ') });
-        }
-
-        document.querySelector('.last-updated .time').textContent = new Date();
-
-        setTimeout(getPrices, 1000);
-      }).catch(e => {
-        console.log(e);
-        setTimeout(getPrices, 1500);
-      });
+          setTimeout(getPrices, 1500);
+        })
     }
 
     getCoinbasePrices();
+    getChanges();
     getPrices();
   </script>
 </body>
