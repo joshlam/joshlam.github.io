@@ -453,6 +453,8 @@
           const notifications = [];
 
           CRYPTO.forEach(currency => {
+            inactive[currency] = {};
+
             EXCHANGES.forEach(exchange => {
               const market = prices[currency][exchange];
 
@@ -491,11 +493,11 @@
                 )
               );
 
-              inactive[currency] = true;
+              inactive[currency][exchange] = true;
             });
 
-            const bittrex = prices[currency].bittrex && prices[currency].bittrex.last;
-            const binance = prices[currency].binance && prices[currency].binance.last;
+            const bittrex = prices[currency].bittrex;
+            const binance = prices[currency].binance;
 
             if (!bittrex || !binance) return;
 
@@ -504,18 +506,29 @@
 
             [bittrexEntry, binanceEntry].forEach(entry => entry.classList.remove('higher', 'lower'));
 
-            const difference = bittrex - binance;
+            const differences = {
+              binance: bittrex.bid - binance.ask,
+              bittrex: binance.bid - bittrex.ask
+            };
+            let difference;
+            let min;
 
-            if (difference > 0) {
+            if (differences.binance > differences.bittrex) {
               bittrexEntry.classList.add('higher');
               binanceEntry.classList.add('lower');
+
+              difference = differences.binance;
+              min = binance.ask;
             } else {
               bittrexEntry.classList.add('lower');
               binanceEntry.classList.add('higher');
+
+              difference = differences.bittrex;
+              min = bittrex.ask;
             }
 
             const entry = document.querySelector(`.${currency} .difference`);
-            const percentage = Math.abs(difference)/Math.min(bittrex, binance) * 100;
+            const percentage = difference / min * 100;
 
             entry.textContent = `${percentage.toFixed(2)}%`;
             entry.classList.remove('levelOne', 'levelTwo', 'levelThree');
@@ -528,7 +541,7 @@
               entry.classList.add('levelOne');
             }
 
-            if (percentage > 3 && !inactive[currency]) {
+            if (percentage > 3 && !inactive[currency].bittrex && !inactive[currency].binance) {
               notifications.push(`${currency}: ${percentage}%`);
             }
           });
