@@ -217,7 +217,6 @@
       'GAS',
       'GVT',
       'HSR',
-      'ICN',
       'INS',
       'KNC',
       'LEND',
@@ -444,16 +443,12 @@
     }
 
     function getPrices() {
-      const inactive = {};
-
       fetch('https://crypto-191318.appspot.com/crypto?arbitrage=true')
         .then(response => response.json())
         .then(prices => {
           const notifications = [];
 
           CRYPTO.forEach(currency => {
-            inactive[currency] = {};
-
             EXCHANGES.forEach(exchange => {
               const market = prices[currency][exchange];
 
@@ -483,7 +478,7 @@
 
               statusEntry.appendChild(
                 createTooltip(
-                  '!',
+                  '!!!',
                   `
                     Deposits: ${market.depositsEnabled},
                     Withdrawals: ${market.withdrawalsEnabled},
@@ -491,9 +486,74 @@
                   `
                 )
               );
-
-              inactive[currency][exchange] = true;
             });
+
+            const kucoinEntry = document.querySelector(`.${currency} .kucoin a`);
+
+            kucoinEntry.classList.remove('higher', 'lower');
+
+            const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
+              const buyMarket = prices[currency][buyFrom];
+
+              if (!buyMarket || !buyMarket.withdrawalsEnabled) return differences;
+
+              EXCHANGES.forEach(sellAt => {
+                if (buyFrom === sellAt) return;
+
+                const sellMarket = prices[currency][sellAt];
+
+                if (!sellMarket || !sellMarket.depositsEnabled) return;
+
+                differences.push({
+                  buy: buyFrom,
+                  sell: sellAt,
+                  bid: sellMarket.bid,
+                  ask: buyMarket.ask,
+                  difference: sellMarket.bid - buyMarket.ask
+                });
+              });
+
+              return differences;
+            }, []).sort((a, b) => {
+              if (a.difference < b.difference) return -1;
+              if (a.difference > b.difference) return 1;
+
+              return 0;
+            });
+
+            if (exchangeDifferences.length > 0) {
+              const differenceEntry = document.querySelector(`.${currency} .difference-all`);
+              const greatest = exchangeDifferences[exchangeDifferences.length - 1];
+              const percentage = greatest.difference / greatest.bid * 100;
+
+              differenceEntry.classList.remove('levelOne', 'levelTwo', 'levelThree');
+              differenceEntry.innerHTML = '';
+
+              differenceEntry.appendChild(
+                createTooltip(
+                  `${percentage.toFixed(2)}%`,
+                  `
+                    Buy from: ${greatest.buy},
+                    Sell at: ${greatest.sell}
+                  `
+                )
+              );
+
+              if (greatest.buy === 'kucoin') kucoinEntry.classList.add('lower');
+              if (greatest.sell === 'kucoin') kucoinEntry.classList.add('higher');
+
+              if (percentage > 4.5) {
+                differenceEntry.classList.add('levelThree');
+              } else if (percentage > 3) {
+                differenceEntry.classList.add('levelTwo');
+              } else if (percentage > 1) {
+                differenceEntry.classList.add('levelOne');
+              }
+
+              if (percentage > 3) {
+                notifications.push(`${currency}: ${percentage}%`);
+              }
+            }
 
             const bittrex = prices[currency].bittrex;
             const binance = prices[currency].binance;
@@ -538,10 +598,6 @@
               entry.classList.add('levelTwo');
             } else if (percentage > 1) {
               entry.classList.add('levelOne');
-            }
-
-            if (percentage > 3 && !inactive[currency].bittrex && !inactive[currency].binance) {
-              notifications.push(`${currency}: ${percentage}%`);
             }
           });
 

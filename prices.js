@@ -27,6 +27,16 @@ function get(endpoint, reducer) {
 
         try {
           jsonResponse = JSON.parse(body);
+
+          let response = jsonResponse;
+
+          if (jsonResponse.result) {
+            response = jsonResponse.result;
+          } else if (jsonResponse.data) {
+            response = jsonResponse.data;
+          }
+
+          resolve(response.reduce(reducer, {}));
         } catch (error) {
           console.log(`Parsing error for ${endpoint}: ${error}`);
           console.log(`Body: ${body}`);
@@ -35,16 +45,6 @@ function get(endpoint, reducer) {
 
           return;
         }
-
-        let response = jsonResponse;
-
-        if (jsonResponse.result) {
-          response = jsonResponse.result;
-        } else if (jsonResponse.data) {
-          response = jsonResponse.data;
-        }
-
-        resolve(response.reduce(reducer, {}));
       });
     }).on('error', error => {
       console.log(`Price fetch error for ${endpoint}: ${error}`);
