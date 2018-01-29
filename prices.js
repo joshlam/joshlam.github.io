@@ -1,15 +1,16 @@
 const https = require('https');
 
-const { CRYPTO } = require('./constants');
+const { CRYPTO, TIME } = require('./constants');
 const formatDate = require('./date');
 const { checkMarkets, checkQueues } = require('./wallet');
 
 let cachedPrices = {};
+let lastUpdatedDateNotification = Date.now();
 
 exports.getCachedPrices = function getCachedPrices(denormalized) {
   return Object.assign({},
     denormalized ? cachedPrices.exchangeData : cachedPrices.normalized,
-    { lastUpdated: cachedPrices.lastUpdated }
+    { lastUpdated: formatDate(cachedPrices.lastUpdated) }
   );
 };
 
@@ -231,7 +232,7 @@ exports.getPrices = function getPrices(diff) {
     cachedPrices = {
       exchangeData,
       normalized: normalizeExchangeData(exchangeData),
-      lastUpdated: formatDate(new Date())
+      lastUpdated: new Date()
     };
 
     try {
@@ -242,11 +243,11 @@ exports.getPrices = function getPrices(diff) {
       console.log(`Error in market data analysis: ${error}`);
     }
 
-    setTimeout(getPrices, 1000, diff);
+    setTimeout(getPrices, TIME.SECOND, diff);
   }).catch(error => {
     console.log(`Price fetch error: ${error}`);
     console.log('Retrying price fetch');
 
-    setTimeout(getPrices, 1500, diff);
+    setTimeout(getPrices, 2 * TIME.SECOND, diff);
   });
 };

@@ -2,6 +2,7 @@ const camelCase = require('camelcase');
 const Twilio = require('twilio');
 
 const config = require('./config');
+const { TIME } = require('./constants');
 
 let lastRequestTime = Date.now();
 
@@ -55,7 +56,7 @@ exports.registerBind = function registerBind(binding) {
 exports.sendNotification = function sendNotification(notification, bypass = false) {
   const timeSinceLastRequest = Date.now() - lastRequestTime;
 
-  if (timeSinceLastRequest > 7200000 && timeSinceLastRequest < 25200000 && !bypass) return;
+  if (timeSinceLastRequest > 2 * TIME.HOUR   && timeSinceLastRequest < 7 * TIME.HOUR && !bypass) return;
 
   // Create a reference to the user notification service
   const service = getTwilioClient();

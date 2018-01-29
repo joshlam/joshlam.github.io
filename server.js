@@ -1,5 +1,6 @@
 const http = require('http');
 
+const { TIME } = require('./constants');
 const { diff, getNotifications } = require('./diff');
 const { getCachedPrices, getPrices } = require('./prices');
 const { registerBind, sendNotification, setLastRequestTime } = require('./twilio');
@@ -14,7 +15,7 @@ process.on('uncaughtException', err => {
 
   console.log(`Caught exception: ${err}`, err.stack);
 
-  if (now - lastExceptionNotification > 900000) {
+  if (now - lastExceptionNotification > 15 * TIME.MINUTE) {
     lastExceptionNotification = now;
 
     sendNotification({ body: `Caught exception: ${err}`, tag: 'all' }, true);

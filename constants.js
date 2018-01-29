@@ -485,8 +485,16 @@ const KRAKEN = Object.freeze([
   'ZEC'
 ]);
 
+const MILLISECOND = 1;
+const SECOND = 1000 * MILLISECOND;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+
+const TIME = Object.freeze({ SECOND, MINUTE, HOUR });
+
 exports.CRYPTO = CRYPTO;
 exports.BITTREX = BITTREX;
 exports.BINANCE = BINANCE;
 exports.KUCOIN = KUCOIN;
 exports.KRAKEN = KRAKEN;
+exports.TIME = TIME;

@@ -1,3 +1,4 @@
+const { TIME } = require('./constants');
 const formatDate = require('./date');
 const { sendNotification } = require('./twilio');
 
@@ -57,7 +58,7 @@ const diffLogs = CRYPTO.reduce((logs, currency) => {
 
 const notificationLog = [];
 
-let lastNotification = Date.now() - 300000;
+let lastNotification = Date.now() - 5 * TIME.MINUTE;
 
 exports.getNotifications = function getNotifications() {
   return { notifications: notificationLog };
@@ -126,13 +127,13 @@ exports.diff = function diff(prices) {
     diffLog.level = level;
   });
 
-  if (now - lastNotification > 300000 && notifications.length > 0) {
+  if (now - lastNotification > 5 * TIME.MINUTE && notifications.length > 0) {
     lastNotification = now;
 
     console.log('Sending notifications', notifications.join('; '));
 
     sendNotification({ body: notifications.join('; '), tag: 'all' });
-  } else if (now - lastNotification > 30000 && urgent.length > 0) {
+  } else if (now - lastNotification > 30 * TIME.SECOND && urgent.length > 0) {
     lastNotification = now;
 
     console.log('Sending urgent notifications', urgent.join('; '));

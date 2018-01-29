@@ -1,9 +1,10 @@
+const { TIME } = require('./constants');
 const { sendNotification } = require('./twilio');
 
 const cache = {};
 
 let lastMarketNotification = Date.now();
-let lastQueueNotification = Date.now() - 300000;
+let lastQueueNotification = Date.now() - 5 * TIME.MINUTE;
 
 function checkExchangeData(key, exchangeData, exchange, notifications) {
   if (!cache[key]) cache[key] = exchangeData;
@@ -63,7 +64,7 @@ exports.checkQueues = function checkQueues(wallets) {
     }
   });
 
-  if (now - lastQueueNotification > 300000 && notifications.length > 0) {
+  if (now - lastQueueNotification > 5 * TIME.MINUTE && notifications.length > 0) {
     lastQueueNotification = now;
 
     console.log('Sending notifications', notifications.join('; '));
