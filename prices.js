@@ -163,7 +163,7 @@ exports.getPrices = function getPrices(diff) {
     return statuses;
   });
 
-  const binancePricesPromise = get('https://www.binance.com/api/v1/ticker/allPrices', (prices, market) => {
+  const binancePricesPromise = get('https://www.binance.com/api/v3/ticker/price', (prices, market) => {
     if (!market.symbol.match('BTC')) return prices;
 
     const currency = market.symbol.split('BTC')[0];
@@ -173,7 +173,7 @@ exports.getPrices = function getPrices(diff) {
     return prices;
   });
 
-  const binanceOrdersPromise = get('https://www.binance.com/api/v1/ticker/allBookTickers', (prices, market) => {
+  const binanceOrdersPromise = get('https://api.binance.com/api/v3/ticker/bookTicker', (prices, market) => {
     if (!market.symbol.match('BTC')) return prices;
 
     const currency = market.symbol.split('BTC')[0];
