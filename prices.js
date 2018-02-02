@@ -69,7 +69,11 @@ function get(endpoint, reducer) {
 }
 
 function normalize(currency) {
-  return currency === 'BCC' ? 'BCH' : currency;
+  switch (currency) {
+    case 'BCC': return 'BCH';
+    case 'XRB': return 'NANO';
+    default: return currency;
+  }
 }
 
 function normalizeExchangeData({

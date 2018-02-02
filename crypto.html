@@ -120,6 +120,7 @@
       <li>Extract out JS from HTML page</li>
       <li>Compute diff with min(ask) - max(bid) instead of last prices</li>
       <li>Show actionable diffs and last price diffs</li>
+      <li>Add links to individual withdraw / deposit pages</li>
     </ul>
   </div>
 
@@ -224,6 +225,7 @@
       'LEND',
       'MOD',
       'MTH',
+      'NANO',
       'NEBL',
       'NULS',
       'PAY',
@@ -281,6 +283,7 @@
       MLN: 'melon',
       MOD: 'modum',
       MTH: 'monetha',
+      NANO: 'raiblocks',
       NAV: 'nav-coin',
       NEBL: 'neblio',
       NEO: 'neo',
@@ -320,6 +323,9 @@
     };
 
     const DENORMALIZE = { BCH: 'BCC' };
+    const TO_LEGACY = { NANO: 'XRB' };
+
+    const CRYPTOCOMPARE = CRYPTO.map(currency => TO_LEGACY[currency] ? TO_LEGACY[currency] : currency);
 
     const EXCHANGES = ['bittrex', 'binance', 'kucoin'];
 
@@ -331,6 +337,7 @@
       row.classList.add(currency);
 
       const exchangeName = DENORMALIZE[currency] ? DENORMALIZE[currency] : currency;
+      const legacyName = TO_LEGACY[currency] ? TO_LEGACY[currency] : currency;
 
       row.innerHTML = `
         <td class="currency"><a target="_blank" href="https://coinmarketcap.com/currencies/${COINMARKETCAP[currency] || currency}">${currency}</a></td>
@@ -341,7 +348,7 @@
         <td class="binance-status status"></td>
         <td class="coinbase"><a target="_blank" href="https://www.gdax.com/trade/${currency}-BTC"></a></td>
         <td class="difference"></td>
-        <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${currency}-BTC"></a></td>
+        <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${legacyName}-BTC"></a></td>
         <td class="kucoin-status status"></td>
         <td class="difference-all"></td>
       `;
@@ -400,9 +407,9 @@
     }
 
     function getChanges() {
-      const half = Math.floor(CRYPTO.length / 2);
-      const firstHalf = CRYPTO.slice(0, half).join();
-      const secondHalf = CRYPTO.slice(half).join();
+      const half = Math.floor(CRYPTOCOMPARE.length / 2);
+      const firstHalf = CRYPTOCOMPARE.slice(0, half).join();
+      const secondHalf = CRYPTOCOMPARE.slice(half).join();
 
       return Promise.all([
         fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${firstHalf}&tsyms=BTC`)
@@ -415,7 +422,7 @@
         const prices = Object.assign({}, firstHalfPrices, secondHalfPrices);
 
         CRYPTO.forEach(currency => {
-          const change = prices[currency].BTC.CHANGEPCT24HOUR;
+          const change = prices[TO_LEGACY[currency] ? TO_LEGACY[currency] : currency].BTC.CHANGEPCT24HOUR;
           const changeEntry = document.querySelector(`.${currency} .change`);
 
           changeEntry.classList.remove('gain', 'loss');
