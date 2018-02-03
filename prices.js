@@ -8,24 +8,6 @@ const { checkMarkets, checkQueues } = require('./wallet');
 let cachedPrices = {};
 let lastUpdatedDateNotification = Date.now();
 
-exports.getCachedPrices = function getCachedPrices(denormalized) {
-  const now = Date.now();
-  const timeSinceLastUpdate = now - cachedPrices.lastUpdated;
-
-  if (
-    timeSinceLastUpdate > 10 * TIME.MINUTE
-      && now - lastUpdatedDateNotification > 30 * TIME.MINUTE
-  ) {
-    lastUpdatedDateNotification = now;
-
-    sendNotification(`Price fetch loop broken for ${timeSinceLastUpdate / TIME.MINUTE} minutes`);
-  }
-
-  return Object.assign({},
-    denormalized ? cachedPrices.exchangeData : cachedPrices.normalized,
-    { lastUpdated: formatDate(cachedPrices.lastUpdated) }
-  );
-};
 
 function get(endpoint, reducer) {
   return new Promise((resolve, reject) => {
@@ -135,7 +117,7 @@ function normalizeExchangeData({
   }, {});
 }
 
-exports.getPrices = function getPrices(diff) {
+function getPrices(diff) {
   const bittrexPricesPromise = get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', (prices, { Market: market, Summary: summary }) => {
     if (market.BaseCurrency != 'BTC') return prices;
 
@@ -267,4 +249,27 @@ exports.getPrices = function getPrices(diff) {
 
     setTimeout(getPrices, 2 * TIME.SECOND, diff);
   });
+}
+
+exports.getPrices = getPrices;
+
+exports.getCachedPrices = function getCachedPrices(denormalized, diff) {
+  const now = Date.now();
+  const timeSinceLastUpdate = now - cachedPrices.lastUpdated;
+
+  if (
+    timeSinceLastUpdate > 10 * TIME.MINUTE
+      && now - lastUpdatedDateNotification > 30 * TIME.MINUTE
+  ) {
+    lastUpdatedDateNotification = now;
+
+    sendNotification(`Price fetch loop broken for ${timeSinceLastUpdate / TIME.MINUTE} minutes`);
+
+    getPrices(diff);
+  }
+
+  return Object.assign({},
+    denormalized ? cachedPrices.exchangeData : cachedPrices.normalized,
+    { lastUpdated: formatDate(cachedPrices.lastUpdated) }
+  );
 };

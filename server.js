@@ -60,7 +60,9 @@ const requestHandler = (request, response) => {
 
   if (!request.url.match('\/crypto') || !request.url.match('arbitrage')) return;
 
-  response.end(JSON.stringify(getCachedPrices(request.url.match('denormalized'))));
+  response.end(JSON.stringify(
+    getCachedPrices(request.url.match('denormalized'), diff)
+  ));
 }
 
 const server = http.createServer(requestHandler);
@@ -71,4 +73,10 @@ server.listen(PORT, error => {
   console.log(`server is listening on ${PORT}`);
 });
 
-getPrices(diff);
+try {
+  getPrices(diff);
+} catch (error) {
+  console.log(`Loop breaking error: ${error}`, error.stack);
+
+  getPrices(diff);
+}
