@@ -20,6 +20,7 @@
     }
 
     .levelTwo,
+    .outdated,
     .warning
     {
       color: red !important;
@@ -356,6 +357,11 @@
       table.appendChild(row);
     });
 
+    const MILLISECOND = 1;
+    const SECOND = 1000 * MILLISECOND;
+    const MINUTE = 60 * SECOND;
+    const HOUR = 60 * MINUTE;
+
     function getCoinbasePrices() {
       const exchangePrices = CRYPTO.reduce((prices, currency) => {
         prices[currency] = {};
@@ -400,9 +406,9 @@
       ).then(() => {
         document.title = `$${exchangePrices.BTC.coinbase}`;
 
-        setTimeout(getCoinbasePrices, 1000);
+        setTimeout(getCoinbasePrices, SECOND);
       }).catch(() => {
-        setTimeout(getCoinbasePrices, 2000);
+        setTimeout(getCoinbasePrices, 2 * SECOND);
       });
     }
 
@@ -431,9 +437,9 @@
           changeEntry.textContent = `${change.toFixed(2)}%`;
         });
 
-        setTimeout(getChanges, 2000);
+        setTimeout(getChanges, 2 * SECOND);
       }).catch(() => {
-        setTimeout(getChanges, 3000);
+        setTimeout(getChanges, 3 * SECOND);
       });
     }
 
@@ -616,13 +622,22 @@
             new Notification('Price Alerts', { body: notifications.join('; ') });
           }
 
-          document.querySelector('.last-updated .time').textContent = new Date();
+          const lastUpdatedEntry = document.querySelector('.last-updated .time');
+          const lastUpdatedTime = new Date(prices.lastUpdated);
 
-          setTimeout(getPrices, 1000);
+          lastUpdatedEntry.textContent = lastUpdatedTime;
+
+          if (Date.now() - lastUpdatedTime > MINUTE) {
+            lastUpdatedEntry.classList.add('outdated');
+          } else {
+            lastUpdatedEntry.classList.remove('outdated');
+          }
+
+          setTimeout(getPrices, SECOND);
         }).catch(error => {
           console.log(error);
 
-          setTimeout(getPrices, 1500);
+          setTimeout(getPrices, 2 * SECOND);
         })
     }
 
