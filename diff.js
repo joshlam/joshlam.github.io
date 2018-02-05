@@ -1,49 +1,8 @@
-const { TIME } = require('./constants');
+const { BINANCE, BITTREX, TIME } = require('./constants');
 const formatDate = require('./date');
 const { sendNotification } = require('./twilio');
 
-const CRYPTO = [
-  'ADA',
-  'ADX',
-  'ARK',
-  'BAT',
-  'BCH',
-  'BNT',
-  'BTG',
-  'DASH',
-  'DNT',
-  'ENG',
-  'ETC',
-  'ETH',
-  'FUN',
-  'KMD',
-  'LSK',
-  'LTC',
-  'LUN',
-  'MANA',
-  'MCO',
-  'NAV',
-  'NEO',
-  'OMG',
-  'POWR',
-  'PIVX',
-  'QTUM',
-  'RCN',
-  'RLC',
-  'SALT',
-  'SNT',
-  'STORJ',
-  'STRAT',
-  'VIB',
-  'WAVES',
-  'WINGS',
-  'XLM',
-  'XMR',
-  'XRP',
-  'XVG',
-  'XZC',
-  'ZEC'
-];
+const CRYPTO = BITTREX.filter(currency => BINANCE.includes(currency));
 
 const diffLogs = CRYPTO.reduce((logs, currency) => {
   logs[currency] = {
