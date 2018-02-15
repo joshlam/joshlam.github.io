@@ -50,10 +50,10 @@ exports.diff = function diff(prices) {
     if (percentage > 7)  level += 1;
     if (percentage > 5)  level += 1;
     if (percentage > 4)  level += 1;
-    if (percentage > 3)  level += 1;
+    if (percentage > 2)  level += 1;
     if (percentage > 1)  level += 1;
 
-    if (level > diffLog.level && percentage - diffLog.difference > 0.33 && level > 1) {
+    if (level > 1) {
       console.log(`${currency} is cheaper at ${cheaperExchange}: ${percentage}%`);
       console.log(`Bittrex: ${bittrex}, Binance: ${binance}`);
       console.log(`Previously the difference was ${diffLog.difference}%`);
