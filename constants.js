@@ -78,7 +78,8 @@ const CRYPTO = Object.freeze([
   'XRP',
   'XVG',
   'XZC',
-  'ZEC'
+  'ZEC',
+  'ZRX'
 ]);
 
 const BITTREX = Object.freeze([
@@ -272,7 +273,8 @@ const BITTREX = Object.freeze([
   'XZC',
   'ZCL',
   'ZEC',
-  'ZEN'
+  'ZEN',
+  'ZRX'
 ]);
 
 const BINANCE = Object.freeze([
