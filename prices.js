@@ -119,7 +119,7 @@ function normalizeExchangeData({
 
 function getPrices(diff) {
   const bittrexPricesPromise = get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', (prices, { Market: market, Summary: summary }) => {
-    if (market.BaseCurrency != 'BTC') return prices;
+    if (market.BaseCurrency != 'BTC' && market.MarketCurrency != 'BTC') return prices;
 
     prices[normalize(market.MarketCurrency)] = {
       bid: summary.Bid,
@@ -236,7 +236,7 @@ function getPrices(diff) {
 
     try {
       checkMarkets({ bittrexWallets, binanceWallets, kucoinWallets, bittrexPrices, binancePrices, kucoinPrices });
-      checkQueues(bittrexWallets);
+      checkQueues(bittrexWallets, bittrexPrices);
       diff(exchangeData);
     } catch (error) {
       console.log(`Error in market data analysis: ${error}`);

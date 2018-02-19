@@ -44,23 +44,24 @@ exports.checkMarkets = function checkMarkets(exchangeData) {
   }
 };
 
-exports.checkQueues = function checkQueues(wallets) {
+exports.checkQueues = function checkQueues(wallets, prices) {
   const now = Date.now();
   const notifications = [];
 
   Object.keys(wallets).forEach(currency => {
     const { depositQueueDepth, withdrawQueueDepth } = wallets[currency];
+    const price = prices[currency] ? prices[currency].last : null;
 
     if (depositQueueDepth > 5) {
-      console.log(`${currency} depositQueueDepth: ${depositQueueDepth}`);
+      console.log(`${currency} depositQueue: ${depositQueueDepth}, price: ${price}`);
 
-      notifications.push(`${currency} depositQueueDepth: ${depositQueueDepth}`);
+      notifications.push(`${currency} depositQueue: ${depositQueueDepth}, price: ${price}`);
     }
 
     if (withdrawQueueDepth > 10) {
-      console.log(`${currency} withdrawQueueDepth: ${withdrawQueueDepth}`);
+      console.log(`${currency} withdrawQueue: ${withdrawQueueDepth}, price: ${price}`);
 
-      notifications.push(`${currency} withdrawQueueDepth: ${withdrawQueueDepth}`);
+      notifications.push(`${currency} withdrawQueue: ${withdrawQueueDepth}, price: ${price}`);
     }
   });
 
