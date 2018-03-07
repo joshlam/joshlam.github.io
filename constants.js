@@ -82,6 +82,7 @@ const CRYPTO = Object.freeze([
   'XVG',
   'XZC',
   'ZEC',
+  'ZIL',
   'ZRX'
 ]);
 
@@ -396,6 +397,7 @@ const BINANCE = Object.freeze([
   'XZC',
   'YOYO',
   'ZEC',
+  'ZIL',
   'ZRX'
 ]);
 
@@ -488,7 +490,8 @@ const KUCOIN = Object.freeze([
   'WTC',
   'XAS',
   'XLR',
-  'XRB'
+  'XRB',
+  'ZIL'
 ]);
 
 const KRAKEN = Object.freeze([
