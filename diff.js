@@ -58,7 +58,7 @@ exports.diff = function diff(prices) {
       console.log(`Bittrex: ${bittrex}, Binance: ${binance}`);
       console.log(`Previously the difference was ${diffLog.difference}%`);
 
-      notifications.push(`${currency}: ${percentage}%`);
+      notifications.push(`${currency}: ${percentage}%, Bt ${bittrex}, Bn ${binance}`);
 
       diffLog.lastNotification = now;
       diffLog.numNotifications += 1;
