@@ -80,7 +80,7 @@ exports.diff = function diff(prices) {
         && prices.bittrexWallets[currency].walletActive
         && prices.bittrexWallets[currency].withdrawQueueDepth < 50
         && prices.bittrexPrices[currency].marketActive
-    ) urgent.push(`${currency}: ${percentage}%`);
+    ) urgent.push(`${currency}: ${percentage}%, Bt ${bittrex}, Bn ${binance}`);
 
     diffLog.difference = percentage;
     diffLog.level = level;
