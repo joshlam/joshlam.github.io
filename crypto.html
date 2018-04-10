@@ -615,7 +615,8 @@
                 differenceEntry.classList.add('levelOne');
               }
 
-              if (percentage > 1) {
+              const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
+              if (isKucoin && percentage >= 3 || !isKucoin && percentage >= 1) {
                 notifications.push(`${currency}: ${percentage}%`);
               }
             }
