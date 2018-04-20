@@ -4,10 +4,10 @@ const { CRYPTO, TIME } = require('./constants');
 const formatDate = require('./date');
 const { sendNotification } = require('./twilio');
 const { checkMarkets, checkQueues } = require('./wallet');
+const websocket = require('./websocket');
 
 let cachedPrices = {};
 let lastUpdatedDateNotification = Date.now();
-
 
 function get(endpoint, reducer) {
   return new Promise((resolve, reject) => {
@@ -32,7 +32,7 @@ function get(endpoint, reducer) {
             response = jsonResponse.data;
           }
 
-          resolve(response.reduce(reducer, {}));
+          resolve(reducer ? response.reduce(reducer, {}) : response);
         } catch (error) {
           console.log(`Parsing error for ${endpoint}: ${error}`);
           console.log(`Body: ${body}`);
@@ -50,9 +50,12 @@ function get(endpoint, reducer) {
   });
 }
 
-function normalize(currency) {
+function normalize(exchangeName) {
+  const currency = exchangeName.toUpperCase();
+
   switch (currency) {
     case 'BCC': return 'BCH';
+    case 'PROPY': return 'PRO';
     case 'XRB': return 'NANO';
     default: return currency;
   }
@@ -64,6 +67,8 @@ function normalizeExchangeData({
   binancePrices,
   binanceOrders,
   binanceWallets,
+  huobiPrices,
+  huobiWallets,
   kucoinPrices,
   kucoinWallets
 }) {
@@ -95,6 +100,19 @@ function normalizeExchangeData({
         depositsEnabled: binanceWallets[currency].depositsEnabled,
         withdrawalsEnabled: binanceWallets[currency].withdrawalsEnabled,
         notice: binanceWallets[currency].notice
+      }
+    }
+
+    if (huobiPrices[currency]) {
+      exchangeData.huobi = {
+        bid: huobiPrices[currency].bid,
+        ask: huobiPrices[currency].ask,
+        last: huobiPrices[currency].bid,
+        marketActive: huobiPrices[currency].marketActive,
+        confirmations: huobiWallets[currency].confirmations,
+        depositsEnabled: huobiWallets[currency].depositsEnabled,
+        withdrawalsEnabled: huobiWallets[currency].withdrawalsEnabled,
+        notice: huobiWallets[currency].notice
       }
     }
 
@@ -185,6 +203,63 @@ function getPrices(diff) {
     return wallets;
   });
 
+  const huobiSymbols = [];
+  const huobiPricesPromise = get('https://api.huobi.pro/v1/settings/symbols', (prices, market) => {
+    if (market['quote-currency'] != 'btc') return prices;
+
+    const currency = normalize(market['base-currency']);
+
+    prices[currency] = { marketActive: market['trade-enabled'] };
+
+    huobiSymbols.push({
+      currency,
+      symbol: `${market['base-currency']}${market['quote-currency']}`
+    });
+
+    return prices;
+  }).then(prices => {
+    const ws = websocket.init('wss://api.huobi.pro/ws',
+      connection => {
+        huobiSymbols.forEach(({ symbol }) => {
+          connection.send(JSON.stringify({
+            sub: `market.${symbol}.depth.step0`,
+            id: symbol
+          }));
+        });
+      },
+      message => {
+        const symbolToMatch = message.ch.split('.')[1];
+        const currency = huobiSymbols.find(({ symbol }) => {
+          return symbol === symbolToMatch;
+        }).currency;
+
+        const [bid, bidQty] = message.tick.bids[0];
+        const [ask, askQty] = message.tick.asks[0];
+
+        Object.assign(prices[currency], { bid, bidQty, ask, askQty });
+      }
+    );
+
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        ws.close();
+
+        resolve(prices);
+      }, 2000);
+    });
+  });
+
+  const huobiWalletsPromise = get('https://api.huobi.pro/v1/settings/currencys?language=en-US', (wallets, wallet) => {
+    wallets[normalize(wallet['display-name'])] = {
+      confirmations: wallet['fast-confirms'],
+      depositsEnabled: wallet['deposit-enabled'],
+      withdrawalsEnabled: wallet['withdraw-enabled'],
+      notice: wallet['deposit-desc'] || wallet['withdraw-desc'] ? `${wallet['deposit-desc']}; ${wallet['withdraw-desc']}` : null
+    };
+
+    return wallets;
+  });
+
   const kucoinPricesPromise = get('https://api.kucoin.com/v1/market/open/symbols', (prices, market) => {
     if (market.coinTypePair != 'BTC') return prices;
 
@@ -215,15 +290,19 @@ function getPrices(diff) {
     binancePricesPromise,
     binanceOrdersPromise,
     binanceWalletsPromise,
+    huobiPricesPromise,
+    huobiWalletsPromise,
     kucoinPricesPromise,
     kucoinWalletsPromise
-  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets, kucoinPrices, kucoinWallets]) => {
+  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets, huobiPrices, huobiWallets, kucoinPrices, kucoinWallets]) => {
     const exchangeData =  {
       bittrexPrices,
       bittrexWallets,
       binancePrices,
       binanceOrders,
       binanceWallets,
+      huobiPrices,
+      huobiWallets,
       kucoinPrices,
       kucoinWallets
     };
@@ -235,7 +314,7 @@ function getPrices(diff) {
     };
 
     try {
-      checkMarkets({ bittrexWallets, binanceWallets, kucoinWallets, bittrexPrices, binancePrices, kucoinPrices });
+      checkMarkets({ bittrexWallets, binanceWallets,  huobiWallets, kucoinWallets, bittrexPrices, binancePrices, huobiPrices, kucoinPrices });
       checkQueues(bittrexWallets, bittrexPrices);
       diff(exchangeData);
     } catch (error) {

@@ -76,6 +76,7 @@
     <a target="_blank" href="https://bittrex.com/Balance">Bittrex wallets</a>
     <a target="_blank" href="https://bittrex.com/Status">Bittrex wallet statuses</a>
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
+    <a target="_blank" href="https://www.huobi.pro/finance/">Huobi wallets</a>
     <a target="_blank" href="https://www.kucoin.com/#/user/account/dashboard">Kucoin wallets</a>
 
   </div>
@@ -99,6 +100,8 @@
       <th>Status</th>
       <th>Coinbase</th>
       <th>Difference</th>
+      <th>Huobi</th>
+      <th>Status</th>
       <th>Kucoin</th>
       <th>Status</th>
       <th>Difference</th>
@@ -124,8 +127,8 @@
       <li>Add links to individual withdraw / deposit pages</li>
       <li>Configurable notifications/subscriptions</li>
       <li>Page with all graphs</li>
+      <li>Add Huobi to mobile alerts if diff is > threshold</li>
       <li>Add Kucoin to mobile alerts if diff is > threshold</li>
-      <li>Add Huobi</li>
       <li>Add alerts on hour change (or more granular)</li>
     </ul>
   </div>
@@ -221,12 +224,34 @@
       'XZC',
       'ZEC',
       'ZRX',
+      'APPC',
+      'AST',
+      'BLZ',
+      'BTS',
+      'CHAT',
+      'CMT',
+      'DGD',
+      'GNT',
+      'ICX',
+      'LINK',
+      'MTL',
+      'OST',
+      'PRO',
+      'SRN',
+      'TNB',
+      'TNT',
+      'WPR',
+      'ACT',
       'AION',
       'AMB',
       'ARN',
       'BCD',
+      'BTM',
       'CVC',
+      'DAT',
+      'DBC',
       'DGB',
+      'DTA',
       'ELF',
       'ENJ',
       'EOS',
@@ -236,13 +261,16 @@
       'HSR',
       'INS',
       'IOST',
+      'ITC',
       'KNC',
       'LEND',
       'MOD',
       'MTH',
+      'MTN',
       'NANO',
       'NEBL',
       'NULS',
+      'OCN',
       'ONT',
       'PAY',
       'POE',
@@ -252,9 +280,12 @@
       'RDN',
       'REQ',
       'RPX',
+      'SNC',
       'SNM',
+      'STK',
       'SUB',
       'UKG',
+      'UTK',
       'VEN',
       'WAX',
       'WTC',
@@ -262,24 +293,36 @@
     ];
 
     const COINMARKETCAP = {
+      ACT: 'achain',
       ADA: 'cardano',
       ADX: 'adx-net',
       AION: 'aion',
       AMB: 'amber',
+      APPC: 'appcoins',
       ARK: 'ark',
       ARN: 'aeron',
+      AST: 'airswap',
       BAT: 'basic-attention-token',
       BCD: 'bitcoin-diamond',
       BCH: 'bitcoin-cash',
       BCPT: 'blockmason',
+      BLZ: 'bluzelle',
       BNT: 'bancor',
       BTG: 'bitcoin-gold',
+      BTM: 'bytom',
+      BTS: 'bitshares',
+      CHAT: 'chatcoin',
       CLOAK: 'cloakcoin',
+      CMT: 'cybermiles',
       CVC: 'civic',
       DASH: 'dash',
+      DAT: 'datum',
+      DBC: 'deepbrain-chain',
       DGB: 'digibyte',
+      DGD: 'digixdao',
       DNT: 'district0x',
       DOGE: 'dogecoin',
+      DTA: 'data',
       ELF: 'aelf',
       ENG: 'enigma-project',
       ENJ: 'enjin-coin',
@@ -289,15 +332,19 @@
       ETH: 'ethereum',
       GAS: 'gas',
       GNO: 'gnosis-gno',
+      GNT: 'golem-network-tokens',
       GRS: 'groestlcoin',
       GVT: 'genesis-vision',
       HSR: 'hshare',
       ICN: 'iconomi',
+      ICX: 'icon',
       INS: 'ins-ecosystem',
       IOST: 'iostoken',
+      ITC: 'iot-chain',
       KMD: 'komodo',
       KNC: 'kyber-network',
       LEND: 'ethlend',
+      LINK: 'chainlink',
       LRC: 'loopring',
       LSK: 'lisk',
       LTC: 'litecoin',
@@ -307,18 +354,23 @@
       MLN: 'melon',
       MOD: 'modum',
       MTH: 'monetha',
+      MTL: 'metal',
+      MTN: 'medical-chain',
       NANO: 'nano',
       NAV: 'nav-coin',
       NEBL: 'neblio',
       NEO: 'neo',
       NULS: 'nuls',
+      OCN: 'odyssey',
       OMG: 'omisego',
       ONT: 'ontology',
+      OST: 'ost',
       PAY: 'tenx',
       PIVX: 'pivx',
       POE: 'poet',
       POWR: 'power-ledger',
       PPT: 'populous',
+      PRO: 'propy',
       QLC: 'qlink',
       QSP: 'quantstamp',
       QTUM: 'qtum',
@@ -329,21 +381,28 @@
       RLC: 'rlc',
       RPX: 'red-pulse',
       SALT: 'salt',
+      SNC: 'suncontract',
       SNM: 'sonm',
       SNT: 'status',
+      SRN: 'sirin-labs-token',
+      STK: 'stk',
       STORJ: 'storj',
       STRAT: 'stratis',
       STEEM: 'steem',
       SUB: 'substratum',
       SYS: 'syscoin',
+      TNB: 'time-new-bank',
+      TNT: 'tierion',
       TRX: 'tron',
       UKG: 'unikoin-gold',
+      UTK: 'utrust',
       VEN: 'vechain',
       VIA: 'viacoin',
       VIB: 'viberate',
       WAVES: 'waves',
       WAX: 'wax',
       WINGS: 'wings',
+      WPR: 'wepower',
       WTC: 'walton',
       XEM: 'nem',
       XLM: 'stellar',
@@ -357,11 +416,11 @@
     };
 
     const DENORMALIZE = { BCH: 'BCC' };
-    const TO_LEGACY = { NANO: 'XRB' };
+    const TO_LEGACY = { NANO: 'XRB', PRO: 'PROPY' };
 
     const CRYPTOCOMPARE = CRYPTO.map(currency => TO_LEGACY[currency] ? TO_LEGACY[currency] : currency);
 
-    const EXCHANGES = ['bittrex', 'binance', 'kucoin'];
+    const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin'];
 
     const table = document.querySelector('.crypto');
 
@@ -382,6 +441,8 @@
         <td class="binance-status status"></td>
         <td class="coinbase"><a target="_blank" href="https://www.gdax.com/trade/${currency}-BTC"></a></td>
         <td class="difference"></td>
+        <td class="huobi"><a target="_blank" href="https://www.huobi.pro/${legacyName.toLowerCase()}_btc/exchange/"></a></td>
+        <td class="huobi-status status"></td>
         <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${legacyName}-BTC"></a></td>
         <td class="kucoin-status status"></td>
         <td class="difference-all"><a target="_blank"></a></td>
@@ -461,7 +522,11 @@
         const prices = Object.assign({}, firstHalfPrices, secondHalfPrices);
 
         CRYPTO.forEach(currency => {
-          const change = prices[TO_LEGACY[currency] ? TO_LEGACY[currency] : currency].BTC.CHANGEPCT24HOUR;
+          const price = prices[TO_LEGACY[currency] ? TO_LEGACY[currency] : currency];
+
+          if (!price) return;
+
+          const change = price.BTC.CHANGEPCT24HOUR;
           const changeEntry = document.querySelector(`.${currency} .change`);
 
           changeEntry.classList.remove('gain', 'loss');
@@ -538,9 +603,17 @@
               );
             });
 
+            const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
+            const binanceEntry = document.querySelector(`.${currency} .binance a`);
+            const huobiEntry = document.querySelector(`.${currency} .huobi a`);
             const kucoinEntry = document.querySelector(`.${currency} .kucoin a`);
 
-            kucoinEntry.classList.remove('higher', 'lower');
+            [
+              bittrexEntry,
+              binanceEntry,
+              huobiEntry,
+              kucoinEntry
+            ].forEach(entry => entry.classList.remove('higher', 'lower'));
 
             const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
               const buyMarket = prices[currency][buyFrom];
@@ -593,21 +666,42 @@
               const legacyName = TO_LEGACY[currency] ? TO_LEGACY[currency] : currency;
 
               let exchangeUrl;
-              switch(greatest.buy) {
-                case 'kucoin':
-                  exchangeUrl = `https://www.kucoin.com/#/trade.pro/${legacyName}-BTC`;
-                  break;
+
+              switch (greatest.buy) {
                 case 'bittrex':
                   exchangeUrl = `https://bittrex.com/Market/Index?MarketName=BTC-${exchangeName}`;
+                  bittrexEntry.classList.add('lower');
                   break;
                 case 'binance':
                   exchangeUrl = `https://www.binance.com/trade.html?symbol=${exchangeName}_BTC`;
+                  binanceEntry.classList.add('lower');
+                  break;
+                case 'huobi':
+                  exchangeUrl = `https://www.huobi.pro/${legacyName.toLowerCase()}_btc/exchange/`;
+                  huobiEntry.classList.add('lower');
+                  break;
+                case 'kucoin':
+                  exchangeUrl = `https://www.kucoin.com/#/trade.pro/${legacyName}-BTC`;
+                  kucoinEntry.classList.add('lower');
                   break;
               }
+
               differenceEntry.href = exchangeUrl;
 
-              if (greatest.buy === 'kucoin') kucoinEntry.classList.add('lower');
-              if (greatest.sell === 'kucoin') kucoinEntry.classList.add('higher');
+              switch (greatest.sell) {
+                case 'bittrex':
+                  bittrexEntry.classList.add('higher');
+                  break;
+                case 'binance':
+                  binanceEntry.classList.add('higher');
+                  break;
+                case 'huobi':
+                  huobiEntry.classList.add('higher');
+                  break;
+                case 'kucoin':
+                  kucoinEntry.classList.add('higher');
+                  break;
+              }
 
               if (percentage > 4.5) {
                 differenceEntry.classList.add('levelThree');
@@ -628,11 +722,6 @@
             const binance = prices[currency].binance;
 
             if (!bittrex || !binance) return;
-
-            const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
-            const binanceEntry = document.querySelector(`.${currency} .binance a`);
-
-            [bittrexEntry, binanceEntry].forEach(entry => entry.classList.remove('higher', 'lower'));
 
             const differences = {
               binance: bittrex.bid - binance.ask,
