@@ -106,6 +106,7 @@ const CRYPTO = Object.freeze([
   'VEN',
   'VIA',
   'VIB',
+  'WAN',
   'WAVES',
   'WAX',
   'WINGS',
