@@ -218,7 +218,7 @@ function getPrices(diff) {
 
     return prices;
   }).then(prices => {
-    const ws = websocket.init('wss://api.huobi.pro/ws',
+    const wsStore = websocket.init('wss://api.huobi.pro/ws',
       connection => {
         huobiSymbols.forEach(({ symbol }) => {
           connection.send(JSON.stringify({
@@ -242,7 +242,9 @@ function getPrices(diff) {
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        ws.close();
+        wsStore.closed = true;
+
+        wsStore.ws.close();
 
         resolve(prices);
       }, 2000);

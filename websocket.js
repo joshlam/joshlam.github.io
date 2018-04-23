@@ -3,6 +3,7 @@ const pako = require('pako');
 
 exports.init = function init(url, subscribe, handler) {
   const ws = new WebSocket(url);
+  const wsStore = { ws, closed: false };
 
   ws.on('open', () => {
     console.log('socket open');
@@ -23,5 +24,19 @@ exports.init = function init(url, subscribe, handler) {
     }
   });
 
-  return ws;
+  ws.on('error', error => {
+    console.log(`socket error: ${error}`);
+
+    init(url, subscribe, handler);
+  });
+
+  ws.on('close', () => {
+    console.log('socket close');
+
+    if (wsStore.closed) return;
+
+    init(url, subscribe, handler);
+  });
+
+  return wsStore;
 };
