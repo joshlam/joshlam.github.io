@@ -339,8 +339,8 @@ exports.getCachedPrices = function getCachedPrices(denormalized, diff) {
   const timeSinceLastUpdate = now - cachedPrices.lastUpdated;
 
   if (
-    timeSinceLastUpdate > 10 * TIME.MINUTE
-      && now - lastUpdatedDateNotification > 30 * TIME.MINUTE
+    timeSinceLastUpdate > TIME.MINUTE
+      && now - lastUpdatedDateNotification > 5 * TIME.MINUTE
   ) {
     lastUpdatedDateNotification = now;
 

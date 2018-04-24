@@ -589,7 +589,6 @@ const KUCOIN = Object.freeze([
   'COFI',
   'COV',
   'CS',
-  'CTR',
   'CV',
   'CVC',
   'CXO',
