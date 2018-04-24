@@ -242,13 +242,23 @@ function getPrices(diff) {
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        wsStore.closed = true;
+        try {
+          wsStore.closed = true;
 
-        wsStore.ws.close();
+          wsStore.ws.close();
 
-        resolve(prices);
+          resolve(prices);
+        } catch (error) {
+          console.log(`socket close error: ${error}`)
+
+          reject(error);
+        }
       }, 2000);
     });
+  }).catch(error => {
+    console.log(`Error in Huobi price fetch: ${error}`);
+
+    return Promise.reject(error);
   });
 
   const huobiWalletsPromise = get('https://api.huobi.pro/v1/settings/currencys?language=en-US', (wallets, wallet) => {
