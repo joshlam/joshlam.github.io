@@ -338,13 +338,12 @@ exports.getCachedPrices = function getCachedPrices(denormalized, diff) {
   const now = Date.now();
   const timeSinceLastUpdate = now - cachedPrices.lastUpdated;
 
-  if (
-    timeSinceLastUpdate > TIME.MINUTE
-      && now - lastUpdatedDateNotification > 5 * TIME.MINUTE
-  ) {
+  if (timeSinceLastUpdate > 20 * TIME.SECOND) {
     lastUpdatedDateNotification = now;
 
-    sendNotification(`Price fetch loop broken for ${timeSinceLastUpdate / TIME.MINUTE} minutes`);
+    if (now - lastUpdatedDateNotification > 30 * TIME.MINUTE) {
+      sendNotification(`Price fetch loop broken for ${timeSinceLastUpdate / TIME.MINUTE} minutes`);
+    }
 
     getPrices(diff);
   }
