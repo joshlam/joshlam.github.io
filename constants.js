@@ -123,6 +123,14 @@ const CRYPTO = Object.freeze([
   'ZRX'
 ]);
 
+const EXCHANGES = Object.freeze(['bittrex', 'binance', 'huobi', 'kucoin']);
+const EXCHANGE_ABRV = Object.freeze({
+  bittrex: 'Bt',
+  binance: 'Bn',
+  huobi: 'Hb',
+  kucoin: 'Ku'
+});
+
 const BITTREX = Object.freeze([
   '1ST',
   '2GIVE',
@@ -732,6 +740,8 @@ const HOUR = 60 * MINUTE;
 const TIME = Object.freeze({ SECOND, MINUTE, HOUR });
 
 exports.CRYPTO = CRYPTO;
+exports.EXCHANGES = EXCHANGES;
+exports.EXCHANGE_ABRV = EXCHANGE_ABRV;
 exports.BITTREX = BITTREX;
 exports.BINANCE = BINANCE;
 exports.HUOBI = HUOBI;

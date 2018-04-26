@@ -326,9 +326,9 @@ function getPrices(diff) {
     };
 
     try {
-      checkMarkets({ bittrexWallets, binanceWallets,  huobiWallets, kucoinWallets, bittrexPrices, binancePrices, huobiPrices, kucoinPrices });
+      checkMarkets(exchangeData);
       checkQueues(bittrexWallets, bittrexPrices);
-      diff(exchangeData);
+      diff(cachedPrices.normalized);
     } catch (error) {
       console.log(`Error in market data analysis: ${error}`);
     }

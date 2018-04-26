@@ -1,8 +1,6 @@
-const { BINANCE, BITTREX, TIME } = require('./constants');
+const { CRYPTO, EXCHANGES, EXCHANGE_ABRV, TIME } = require('./constants');
 const formatDate = require('./date');
 const { sendNotification } = require('./twilio');
-
-const CRYPTO = BITTREX.filter(currency => BINANCE.includes(currency));
 
 const diffLogs = CRYPTO.reduce((logs, currency) => {
   logs[currency] = {
@@ -29,14 +27,41 @@ exports.diff = function diff(prices) {
   const urgent = [];
 
   CRYPTO.forEach(currency => {
-    const bittrex = prices.bittrexPrices[currency].last;
-    const binance = prices.binancePrices[currency];
+    const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
+      const buyMarket = prices[currency][buyFrom];
 
-    const difference = bittrex - binance;
-    const percentage = Number((Math.abs(difference)/Math.min(bittrex, binance) * 100).toFixed(2));
+      if (!buyMarket || !buyMarket.withdrawalsEnabled) return differences;
 
-    const cheaperExchange = difference > 0 ? 'Binance' : 'Bittrex';
+      EXCHANGES.forEach(sellAt => {
+        if (buyFrom === sellAt) return;
+
+        const sellMarket = prices[currency][sellAt];
+
+        if (!sellMarket || !sellMarket.depositsEnabled) return;
+
+        differences.push({
+          buy: buyFrom,
+          sell: sellAt,
+          bid: sellMarket.bid,
+          ask: buyMarket.ask,
+          difference: sellMarket.bid - buyMarket.ask
+        });
+      });
+
+      return differences;
+    }, []).sort((a, b) => {
+      if (a.difference < b.difference) return -1;
+      if (a.difference > b.difference) return 1;
+
+      return 0;
+    });
+
+    if (exchangeDifferences.length === 0) return;
+
     const diffLog = diffLogs[currency];
+
+    const greatest = exchangeDifferences[exchangeDifferences.length - 1];
+    const percentage = (greatest.difference / greatest.bid * 100).toFixed(2);
 
     let level = 0;
 
@@ -50,15 +75,26 @@ exports.diff = function diff(prices) {
     if (percentage > 7)  level += 1;
     if (percentage > 5)  level += 1;
     if (percentage > 4)  level += 1;
+    if (percentage > 3)  level += 1;
     if (percentage > 2)  level += 1;
     if (percentage > 1)  level += 1;
 
-    if (level > 1) {
-      console.log(`${currency} is cheaper at ${cheaperExchange}: ${percentage}%`);
-      console.log(`Bittrex: ${bittrex}, Binance: ${binance}`);
+    const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
+
+    if (isKucoin && level > 2 || !isKucoin && level > 1) {
+      const buyFrom = EXCHANGE_ABRV[greatest.buy];
+      const sellAt = EXCHANGE_ABRV[greatest.sell];
+
+      console.log(`${currency} is cheaper at ${greatest.buy}: ${percentage}%`);
+      console.log(`${buyFrom}: ${greatest.ask}, ${sellAt}: ${greatest.bid}`);
       console.log(`Previously the difference was ${diffLog.difference}%`);
 
-      notifications.push(`${currency}: ${percentage}%, Bt ${bittrex}, Bn ${binance}`);
+      const notification =
+        `${currency}: ${percentage}%, ${buyFrom} ${greatest.ask}, ${sellAt} ${greatest.bid}`;
+
+      notifications.push(notification);
+
+      if (level > 4) urgent.push(notification);
 
       diffLog.lastNotification = now;
       diffLog.numNotifications += 1;
@@ -68,19 +104,12 @@ exports.diff = function diff(prices) {
       if (notificationLog.length > 500) notificationLog.shift();
 
       notificationLog.push([
-        `${currency} is cheaper at ${cheaperExchange}: ${percentage}%`,
-        `Bittrex: ${bittrex}, Binance: ${binance}`,
+        `${currency} is cheaper at ${greatest.buy}: ${percentage}%`,
+        `${greatest.buy}: ${greatest.ask}, ${greatest.sell}: ${greatest.bid}`,
         `Previously the difference was ${diffLog.difference}%`,
         formatDate(new Date())
       ].join('\n'))
     }
-
-    if (
-      level > 3
-        && prices.bittrexWallets[currency].walletActive
-        && prices.bittrexWallets[currency].withdrawQueueDepth < 50
-        && prices.bittrexPrices[currency].marketActive
-    ) urgent.push(`${currency}: ${percentage}%, Bt ${bittrex}, Bn ${binance}`);
 
     diffLog.difference = percentage;
     diffLog.level = level;
