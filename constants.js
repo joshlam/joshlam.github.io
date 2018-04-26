@@ -471,8 +471,6 @@ const HUOBI = Object.freeze([
   'BCX',
   'BIFI',
   'BLZ',
-  'BT1',
-  'BT2',
   'BTC',
   'BTG',
   'BTM',

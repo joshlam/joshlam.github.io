@@ -205,7 +205,9 @@ function getPrices(diff) {
 
   const huobiSymbols = [];
   const huobiPricesPromise = get('https://api.huobi.pro/v1/settings/symbols', (prices, market) => {
-    if (market['quote-currency'] != 'btc') return prices;
+    const isInactive = market.delist && !market['trade-enabled'];
+
+    if (market['quote-currency'] != 'btc' || isInactive) return prices;
 
     const currency = normalize(market['base-currency']);
 
@@ -242,16 +244,14 @@ function getPrices(diff) {
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
+        resolve(prices);
+
         try {
           wsStore.closed = true;
 
           wsStore.ws.close();
-
-          resolve(prices);
         } catch (error) {
           console.log(`socket close error: ${error}`)
-
-          reject(error);
         }
       }, 2000);
     });
@@ -348,7 +348,7 @@ exports.getCachedPrices = function getCachedPrices(denormalized, diff) {
   const now = Date.now();
   const timeSinceLastUpdate = now - cachedPrices.lastUpdated;
 
-  if (timeSinceLastUpdate > 20 * TIME.SECOND) {
+  if (timeSinceLastUpdate > 25 * TIME.SECOND) {
     lastUpdatedDateNotification = now;
 
     if (now - lastUpdatedDateNotification > 30 * TIME.MINUTE) {
