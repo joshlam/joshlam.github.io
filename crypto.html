@@ -716,7 +716,7 @@
               const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
 
               if (isKucoin && percentage >= 3 || !isKucoin && percentage >= 1) {
-                notifications.push(`${currency}: ${percentage.toFixed(2)}%`);
+                notifications.push({ currency, percentage: percentage.toFixed(2) });
               }
             }
 
@@ -762,7 +762,16 @@
           });
 
           if (notificationsEnabled && notifications.length > 0) {
-            new Notification('Price Alerts', { body: notifications.join('; ') });
+            notifications.sort((a, b) => (b.percentage - a.percentage));
+
+            new Notification(
+              'Price Alerts',
+              {
+                body: notifications.map(
+                  ({ currency, percentage }) => `${currency}: ${percentage}%`
+                ).join('; ')
+              }
+            );
           }
 
           const lastUpdatedEntry = document.querySelector('.last-updated .time');
