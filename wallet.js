@@ -13,9 +13,11 @@ function checkExchangeData(key, exchangeData, exchange, notifications) {
     const newMarkets = Object.keys(exchangeData).filter(currency => !cache[key][currency]);
     const removedMarkets = Object.keys(cache[key]).filter(currency => !exchangeData[currency]);
 
+    console.log(`Diff in ${exchange} data: ${key}`);
+    console.log(`${exchange} market cached: ${JSON.stringify(cache[key])}`);
+    console.log(`${exchange} market current: ${JSON.stringify(exchangeData)}`);
+
     if (exchange === 'Kucoin') {
-      console.log(`Kucoin market cached: ${JSON.stringify(cache[key])}`);
-      console.log(`Kucoin market current: ${JSON.stringify(exchangeData)}`);
       console.log(`Potential new ${exchange} market(s): ${newMarkets.join('; ')}`);
       console.log(`Potential removed ${exchange} market(s): ${removedMarkets.join('; ')}`);
     } else {
@@ -32,7 +34,7 @@ exports.checkMarkets = function checkMarkets(exchangeData) {
   const notifications = [];
 
   ['bittrexWallets', 'bittrexPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Bittrex', notifications));
-  ['binanceWallets', 'binancePrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
+  ['binanceWallets'/*, 'binancePrices'*/].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
   ['huobiWallets', 'huobiPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Huobi', notifications));
   ['kucoinWallets', 'kucoinPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Kucoin', notifications));
 
