@@ -1,4 +1,5 @@
 const CRYPTO = Object.freeze([
+  'ABT',
   'ACT',
   'ADA',
   'ADX',
@@ -14,6 +15,7 @@ const CRYPTO = Object.freeze([
   'BCPT',
   'BLZ',
   'BNT',
+  'BRD',
   'BTG',
   'BTS',
   'BTM',
@@ -569,6 +571,7 @@ const HUOBI = Object.freeze([
 ]);
 
 const KUCOIN = Object.freeze([
+  'ABT',
   'ABTC',
   'ACAT',
   'ACT',
@@ -577,6 +580,7 @@ const KUCOIN = Object.freeze([
   'AION',
   'AIX',
   'AMB',
+  'APH',
   'ARN',
   'ARY',
   'AXP',
@@ -587,6 +591,7 @@ const KUCOIN = Object.freeze([
   'BNTY',
   'BOS',
   'BPT',
+  'BRD',
   'BTC',
   'BTCP',
   'BTG',
@@ -611,6 +616,7 @@ const KUCOIN = Object.freeze([
   'DENT',
   'DGB',
   'DNA',
+  'DOCK',
   'DRGN',
   'DTA',
   'EBTC',
@@ -655,6 +661,7 @@ const KUCOIN = Object.freeze([
   'LOOM',
   'LTC',
   'LYM',
+  'MANA',
   'MEE',
   'MOD',
   'MTH',
@@ -709,6 +716,7 @@ const KUCOIN = Object.freeze([
   'VEN',
   'WAN',
   'WAX',
+  'WPR',
   'WTC',
   'XAS',
   'XLR',
