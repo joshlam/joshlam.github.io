@@ -30,14 +30,14 @@ exports.diff = function diff(prices) {
     const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
       const buyMarket = prices[currency][buyFrom];
 
-      if (!buyMarket || !buyMarket.withdrawalsEnabled) return differences;
+      if (!buyMarket || !buyMarket.withdrawalsEnabled || !buyMarket.ask) return differences;
 
       EXCHANGES.forEach(sellAt => {
         if (buyFrom === sellAt) return;
 
         const sellMarket = prices[currency][sellAt];
 
-        if (!sellMarket || !sellMarket.depositsEnabled) return;
+        if (!sellMarket || !sellMarket.depositsEnabled || !sellMarket.bid) return;
 
         differences.push({
           buy: buyFrom,
