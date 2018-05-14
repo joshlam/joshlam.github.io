@@ -427,8 +427,6 @@
     const DENORMALIZE = { BCH: 'BCC' };
     const TO_LEGACY = { NANO: 'XRB', PRO: 'PROPY' };
 
-    const CRYPTOCOMPARE = CRYPTO.map(currency => TO_LEGACY[currency] ? TO_LEGACY[currency] : currency);
-
     const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin'];
 
     const table = document.querySelector('.crypto');
@@ -516,9 +514,9 @@
     }
 
     function getChanges() {
-      const half = Math.floor(CRYPTOCOMPARE.length / 2);
-      const firstHalf = CRYPTOCOMPARE.slice(0, half).join();
-      const secondHalf = CRYPTOCOMPARE.slice(half).join();
+      const half = Math.floor(CRYPTO.length / 2);
+      const firstHalf = CRYPTO.slice(0, half).join();
+      const secondHalf = CRYPTO.slice(half).join();
 
       return Promise.all([
         fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${firstHalf}&tsyms=BTC`)
@@ -531,7 +529,7 @@
         const prices = Object.assign({}, firstHalfPrices, secondHalfPrices);
 
         CRYPTO.forEach(currency => {
-          const price = prices[TO_LEGACY[currency] ? TO_LEGACY[currency] : currency];
+          const price = prices[currency];
 
           if (!price) return;
 
