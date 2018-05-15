@@ -7,6 +7,8 @@ let lastMarketNotification = Date.now();
 let lastQueueNotification = Date.now() - 5 * TIME.MINUTE;
 
 function checkExchangeData(key, exchangeData, exchange, notifications) {
+  if (Object.keys(exchangeData).length === 0) return;
+
   if (!cache[key]) cache[key] = exchangeData;
 
   if (Object.keys(cache[key]).length != Object.keys(exchangeData).length) {
@@ -34,7 +36,7 @@ exports.checkMarkets = function checkMarkets(exchangeData) {
   const notifications = [];
 
   ['bittrexWallets', 'bittrexPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Bittrex', notifications));
-  ['binanceWallets'/*, 'binancePrices'*/].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
+  ['binanceWallets', 'binancePrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
   ['huobiWallets', 'huobiPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Huobi', notifications));
   ['kucoinWallets', 'kucoinPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Kucoin', notifications));
 
