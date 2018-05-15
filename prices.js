@@ -275,6 +275,8 @@ function getPrices(diff) {
 
     return prices;
   }).then(prices => {
+    if (huobiSymbols.length === 0) return prices;
+
     const wsStore = websocket.init('wss://api.huobi.pro/ws',
       connection => {
         huobiSymbols.forEach(({ symbol }) => {
