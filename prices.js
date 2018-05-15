@@ -1,16 +1,29 @@
 const https = require('https');
 
-const { CRYPTO, TIME } = require('./constants');
+const { CRYPTO, MAX_BACKOFF, MIN_BACKOFF, TIME } = require('./constants');
 const formatDate = require('./date');
 const { sendNotification } = require('./twilio');
 const { checkMarkets, checkQueues } = require('./wallet');
 const websocket = require('./websocket');
 
+const backoff = {};
 let cachedPrices = {};
+let lastPriceCheck = Date.now();
 let lastUpdatedDateNotification = Date.now();
+
+function exponentialBackoff(currentBackoff = 0) {
+  return Math.min([
+    MAX_BACKOFF,
+    Math.max([2 * currentBackoff, MIN_BACKOFF])
+  ]);
+}
 
 function get(endpoint, reducer) {
   return new Promise((resolve, reject) => {
+    if (backoff[endpoint] && backoff[endpoint] > Date.now() - lastPriceCheck) {
+      return void resolve({});
+    }
+
     https.get(endpoint, res => {
       let body = '';
 
@@ -33,17 +46,23 @@ function get(endpoint, reducer) {
           }
 
           resolve(reducer ? response.reduce(reducer, {}) : response);
+
+          backoff[endpoint] = 0;
         } catch (error) {
           console.log(`Parsing error for ${endpoint}: ${error}`);
           console.log(`Body: ${body}`);
 
           resolve({});
+
+          backoff[endpoint] = exponentialBackoff(backoff[endpoint]);
         }
       });
     }).on('error', error => {
       console.log(`Price fetch error for ${endpoint}: ${error}`);
 
       resolve({});
+
+      backoff[endpoint] = exponentialBackoff(backoff[endpoint]);
     });
   });
 }
@@ -170,6 +189,8 @@ function normalizeExchangeData({
 }
 
 function getPrices(diff) {
+  lastPriceCheck = Date.now();
+
   const bittrexPricesPromise = get('https://bittrex.com/api/v2.0/pub/Markets/GetMarketSummaries', (prices, { Market: market, Summary: summary }) => {
     if (market.BaseCurrency != 'BTC' && market.MarketCurrency != 'BTC') return prices;
 

@@ -750,6 +750,9 @@ const HOUR = 60 * MINUTE;
 
 const TIME = Object.freeze({ SECOND, MINUTE, HOUR });
 
+const MAX_BACKOFF = HOUR;
+const MIN_BACKOFF = 2 * SECOND;
+
 exports.CRYPTO = CRYPTO;
 exports.EXCHANGES = EXCHANGES;
 exports.EXCHANGE_ABRV = EXCHANGE_ABRV;
@@ -759,3 +762,5 @@ exports.HUOBI = HUOBI;
 exports.KUCOIN = KUCOIN;
 exports.KRAKEN = KRAKEN;
 exports.TIME = TIME;
+exports.MAX_BACKOFF = MAX_BACKOFF;
+exports.MIN_BACKOFF = MIN_BACKOFF;
