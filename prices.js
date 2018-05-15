@@ -37,15 +37,13 @@ function get(endpoint, reducer) {
           console.log(`Parsing error for ${endpoint}: ${error}`);
           console.log(`Body: ${body}`);
 
-          reject(error);
-
-          return;
+          resolve({});
         }
       });
     }).on('error', error => {
       console.log(`Price fetch error for ${endpoint}: ${error}`);
 
-      reject(error);
+      resolve({});
     });
   });
 }
@@ -81,26 +79,48 @@ function normalizeExchangeData({
         ask: bittrexPrices[currency].ask,
         last: bittrexPrices[currency].last,
         marketActive: bittrexPrices[currency].marketActive,
+        notice: bittrexPrices[currency].notice
+      };
+    }
+
+    if (bittrexWallets[currency]) {
+      if (!exchangeData.bittrex) exchangeData.bittrex = {};
+
+      const walletNotice = bittrexWallets[currency].notice || null;
+
+      Object.assign(exchangeData.bittrex, {
         confirmations: bittrexWallets[currency].confirmations,
         depositsEnabled: bittrexWallets[currency].walletActive,
         withdrawalsEnabled: bittrexWallets[currency].walletActive,
-        notice: bittrexPrices[currency].notice || bittrexWallets[currency].notice
-          ? `${bittrexPrices[currency].notice}; ${bittrexWallets[currency].notice}`
-          : null
-      }
+        notice: exchangeData.bittrex.notice
+          ? `${exchangeData.bittrex.notice}; ${walletNotice}`
+          : walletNotice
+      });
     }
 
-    if (binancePrices[currency]) {
+    if (binanceOrders[currency]) {
       exchangeData.binance = {
         bid: binanceOrders[currency].bid,
         ask: binanceOrders[currency].ask,
-        last: binancePrices[currency],
-        marketActive: true,
+        marketActive: true
+      };
+    }
+
+    if (binancePrices[currency]) {
+      if (!exchangeData.binance) exchangeData.binance = { marketActive: true };
+
+      Object.assign(exchangeData.binance, { last: binancePrices[currency] });
+    }
+
+    if (binanceWallets[currency]) {
+      if (!exchangeData.binance) exchangeData.binance = { marketActive: true };
+
+      Object.assign(exchangeData.binance, {
         confirmations: binanceWallets[currency].confirmations,
         depositsEnabled: binanceWallets[currency].depositsEnabled,
         withdrawalsEnabled: binanceWallets[currency].withdrawalsEnabled,
         notice: binanceWallets[currency].notice
-      }
+      });
     }
 
     if (huobiPrices[currency]) {
@@ -108,12 +128,19 @@ function normalizeExchangeData({
         bid: huobiPrices[currency].bid,
         ask: huobiPrices[currency].ask,
         last: huobiPrices[currency].bid,
-        marketActive: huobiPrices[currency].marketActive,
+        marketActive: huobiPrices[currency].marketActive
+      };
+    }
+
+    if (huobiWallets[currency]) {
+      if (!exchangeData.huobi) exchangeData.huobi = {};
+
+      Object.assign(exchangeData.huobi, {
         confirmations: huobiWallets[currency].confirmations,
         depositsEnabled: huobiWallets[currency].depositsEnabled,
         withdrawalsEnabled: huobiWallets[currency].withdrawalsEnabled,
         notice: huobiWallets[currency].notice
-      }
+      });
     }
 
     if (kucoinPrices[currency]) {
@@ -121,12 +148,19 @@ function normalizeExchangeData({
         bid: kucoinPrices[currency].bid,
         ask: kucoinPrices[currency].ask,
         last: kucoinPrices[currency].last,
-        marketActive: kucoinPrices[currency].marketActive,
+        marketActive: kucoinPrices[currency].marketActive
+      };
+    }
+
+    if (kucoinWallets[currency]) {
+      if (!exchangeData.kucoin) exchangeData.kucoin = {};
+
+      Object.assign(exchangeData.kucoin, {
         confirmations: kucoinWallets[currency].confirmations,
         depositsEnabled: kucoinWallets[currency].depositsEnabled,
         withdrawalsEnabled: kucoinWallets[currency].withdrawalsEnabled,
         notice: kucoinWallets[currency].notice
-      }
+      });
     }
 
     currencies[currency] = exchangeData;
@@ -327,10 +361,20 @@ function getPrices(diff) {
 
     try {
       checkMarkets(exchangeData);
+    } catch (error) {
+      console.log(`Error in checking market: ${error}`);
+    }
+
+    try {
       checkQueues(bittrexWallets, bittrexPrices);
+    } catch (error) {
+      console.log(`Error in checking queues: ${error}`);
+    }
+
+    try {
       diff(cachedPrices.normalized);
     } catch (error) {
-      console.log(`Error in market data analysis: ${error}`);
+      console.log(`Error in calculating diffs: ${error}`);
     }
 
     setTimeout(getPrices, TIME.SECOND, diff);
