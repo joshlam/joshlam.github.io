@@ -16,7 +16,11 @@ exports.init = function init(url, subscribe, handler) {
     const message = JSON.parse(text);
 
     if (message.ping) {
-      ws.send(JSON.stringify({ pong: message.ping }));
+      try {
+        ws.send(JSON.stringify({ pong: message.ping }));
+      } catch (error) {
+        console.log(`socket send error: ${error}`);
+      }
     } else if (message.tick) {
       handler(message);
     } else {
