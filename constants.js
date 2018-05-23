@@ -334,6 +334,7 @@ const BINANCE = Object.freeze([
   'XZC',
   'YOYO',
   'ZEC',
+  'ZEN',
   'ZIL',
   'ZRX'
 ]);
