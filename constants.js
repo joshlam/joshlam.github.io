@@ -87,6 +87,7 @@ const BITTREX = Object.freeze([
   'GOLOS',
   'GRC',
   'GRS',
+  'GTO',
   'GUP',
   'HMQ',
   'IGNIS',
