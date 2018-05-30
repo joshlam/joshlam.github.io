@@ -11,6 +11,16 @@ let cachedPrices = {};
 let lastPriceCheck = Date.now();
 let lastUpdatedDateNotification = Date.now();
 
+function reduce(collection, reducer, initial) {
+  if (Array.isArray(collection)) return collection.reduce(reducer, initial);
+
+  return Object.keys(collection).reduce((array, key) => {
+    array.push(Object.assign({}, collection[key], { key }));
+
+    return array;
+  },[]).reduce(reducer, initial);
+}
+
 function exponentialBackoff(currentBackoff = 0) {
   return Math.min([
     MAX_BACKOFF,
@@ -18,7 +28,7 @@ function exponentialBackoff(currentBackoff = 0) {
   ]);
 }
 
-function get(endpoint, reducer) {
+function get(endpoint, reducer, initial = {}) {
   return new Promise((resolve, reject) => {
     if (backoff[endpoint] && backoff[endpoint] > Date.now() - lastPriceCheck) {
       return void resolve({});
@@ -45,7 +55,7 @@ function get(endpoint, reducer) {
             response = jsonResponse.data;
           }
 
-          resolve(reducer ? response.reduce(reducer, {}) : response);
+          resolve(reducer ? reduce(response, reducer, initial) : response);
 
           backoff[endpoint] = 0;
         } catch (error) {
@@ -74,6 +84,17 @@ function normalize(exchangeName) {
     case 'BCC': return 'BCH';
     case 'PROPY': return 'PRO';
     case 'XRB': return 'NANO';
+    case 'XETC': return 'ETC';
+    case 'XETH': return 'ETH';
+    case 'XICN': return 'ICN';
+    case 'XLTC': return 'LTC';
+    case 'XMLN': return 'MLN';
+    case 'XREP': return 'REP';
+    case 'XXDG': return 'DOGE';
+    case 'XXLM': return 'XLM';
+    case 'XXMR': return 'XMR';
+    case 'XXRP': return 'XRP';
+    case 'XZEC': return 'ZEC';
     default: return currency;
   }
 }
@@ -87,7 +108,8 @@ function normalizeExchangeData({
   huobiPrices,
   huobiWallets,
   kucoinPrices,
-  kucoinWallets
+  kucoinWallets,
+  krakenPrices
 }) {
   return CRYPTO.reduce((currencies, currency) => {
     const exchangeData = {};
@@ -180,6 +202,19 @@ function normalizeExchangeData({
         withdrawalsEnabled: kucoinWallets[currency].withdrawalsEnabled,
         notice: kucoinWallets[currency].notice
       });
+    }
+
+    if (krakenPrices[currency]) {
+      exchangeData.kraken = {
+        bid: krakenPrices[currency].bid,
+        ask: krakenPrices[currency].ask,
+        last: krakenPrices[currency].last,
+        marketActive: krakenPrices[currency].marketActive,
+        confirmations: krakenPrices[currency].confirmations,
+        depositsEnabled: krakenPrices[currency].depositsEnabled,
+        withdrawalsEnabled: krakenPrices[currency].withdrawalsEnabled,
+        notice: krakenPrices[currency].notice
+      };
     }
 
     currencies[currency] = exchangeData;
@@ -315,7 +350,7 @@ function getPrices(diff) {
   }).catch(error => {
     console.log(`Error in Huobi price fetch: ${error}`);
 
-    return Promise.reject(error);
+    return Promise.resolve({});
   });
 
   const huobiWalletsPromise = get('https://api.huobi.pro/v1/settings/currencys?language=en-US', (wallets, wallet) => {
@@ -353,6 +388,51 @@ function getPrices(diff) {
     return wallets;
   });
 
+  const krakenSymbols = [];
+  const krakenPricesPromise = get('https://api.kraken.com/0/public/AssetPairs', (prices, market) => {
+    if (market.quote != 'XXBT') return prices;
+
+    const currency = normalize(market.base);
+
+    prices[currency] = {
+      marketActive: true,
+      confirmations: null,
+      depositsEnabled: true,
+      withdrawalsEnabled: true,
+      notice: null
+    };
+
+    const quote = market.base[0] === 'X' ? market.quote : market.quote.slice(1);
+
+    krakenSymbols.push({
+      currency,
+      symbol: `${market.base}${quote}`
+    });
+
+    return prices;
+  }).then(prices => {
+    if (krakenSymbols.length === 0) return prices;
+
+    return get(`https://api.kraken.com/0/public/Ticker?pair=${krakenSymbols.map(({ symbol }) => symbol)}`, (coins, market) => {
+      Object.assign(
+        coins[krakenSymbols.find(({ symbol }) => symbol === market.key).currency],
+        {
+          bid: Number(market.b[0]),
+          bidQty: Number(market.b[1]),
+          ask: Number(market.a[0]),
+          askQty: Number(market.a[1]),
+          last: Number(market.c[0])
+        }
+      );
+
+      return coins;
+    }, prices);
+  }).catch(error => {
+    console.log(`Error in Kraken price fetch: ${error}`);
+
+    return Promise.resolve({});
+  });
+
   Promise.all([
     bittrexPricesPromise,
     bittrexWalletsPromise,
@@ -362,8 +442,9 @@ function getPrices(diff) {
     huobiPricesPromise,
     huobiWalletsPromise,
     kucoinPricesPromise,
-    kucoinWalletsPromise
-  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets, huobiPrices, huobiWallets, kucoinPrices, kucoinWallets]) => {
+    kucoinWalletsPromise,
+    krakenPricesPromise
+  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets, huobiPrices, huobiWallets, kucoinPrices, kucoinWallets, krakenPrices]) => {
     const exchangeData =  {
       bittrexPrices,
       bittrexWallets,
@@ -373,7 +454,8 @@ function getPrices(diff) {
       huobiPrices,
       huobiWallets,
       kucoinPrices,
-      kucoinWallets
+      kucoinWallets,
+      krakenPrices
     };
 
     cachedPrices = {

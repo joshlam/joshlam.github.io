@@ -40,6 +40,8 @@ exports.checkMarkets = function checkMarkets(exchangeData) {
   ['huobiWallets', 'huobiPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Huobi', notifications));
   ['kucoinWallets', 'kucoinPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Kucoin', notifications));
 
+  checkExchangeData('krakenPrices', exchangeData.krakenPrices, 'Kraken', notifications);
+
   if (notifications.length > 0) {
     lastMarketNotification = now;
 
