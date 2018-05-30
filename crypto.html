@@ -46,6 +46,23 @@
       margin-top: 5px;
     }
 
+    .column {
+      display: inline-block
+    }
+
+    .notification-settings {
+      display: inline-block;
+      margin-bottom: 10px;
+      margin-left: 10px;
+      margin-top: 5px;
+      vertical-align: top;
+    }
+
+    .notification-header {
+      margin-bottom: 10px;
+      margin-top: 0;
+    }
+
     .tooltip {
       border-bottom: 1px dotted black;
       display: inline-block;
@@ -83,13 +100,25 @@
 
   </div>
 
-  <div class="last-updated">
-    <b>Prices last updated</b>: <span class="time"></span>
-  </div>
+  <div class="row">
+    <div class="column">
+      <div class="last-updated">
+        <b>Prices last updated</b>: <span class="time"></span>
+      </div>
 
-  <div class="gdax">
-    <ul class="usd-prices">
-    </ul>
+      <div class="gdax">
+        <ul class="usd-prices">
+        </ul>
+      </div>
+    </div>
+
+    <div class="notification-settings">
+      <h4 class="notification-header">Notification Settings</h1>
+      <label for="general">General</label>
+      <input type="number" name="general" class="general-setting setting">
+      <label for="kucoin">Kucoin</label>
+      <input type="number" name="kucoin" class="kucoin-setting setting">
+    </div>
   </div>
 
   <table class="crypto">
@@ -129,7 +158,7 @@
       <li>Compute diff with min(ask) - max(bid) instead of last prices</li>
       <li>Show actionable diffs and last price diffs</li>
       <li>Add links to individual withdraw / deposit pages</li>
-      <li>Configurable notifications/subscriptions</li>
+      <li>Configurable subscriptions</li>
       <li>Page with all graphs</li>
       <li>Add alerts on hour change (or more granular)</li>
       <li>Add HADAX</li>
@@ -602,6 +631,56 @@
     const MINUTE = 60 * SECOND;
     const HOUR = 60 * MINUTE;
 
+    function getParameterByName(name) {
+      const regex = new RegExp(`[?&]${name.replace(/[\[\]]/g, "\\$&")}(=([^&#]*)|&|#|$)`);
+      const results = regex.exec(window.location.href);
+
+      if (!results) return NaN;
+      if (!results[2]) return NaN;
+
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    function updateQueryParams({ general, kucoin }) {
+      const base = document.location.href.match('crypto.html') ? 'crypto.html' : 'crypto';
+
+      history.pushState({}, '', `${base}?general=${general}&kucoin=${kucoin}`);
+    }
+
+    const GENERAL_DEFAULT = 1;
+    const KUCOIN_DEFAULT = 3;
+
+    const generalParameter = getParameterByName('general');
+    const kucoinParameter = getParameterByName('kucoin');
+
+    let generalThreshold = isNaN(generalParameter) ? GENERAL_DEFAULT : generalParameter;
+    let kucoinThreshold =  isNaN(kucoinParameter) ? KUCOIN_DEFAULT : kucoinParameter;
+
+    const generalSetting = document.querySelector('.general-setting');
+    const kucoinSetting = document.querySelector('.kucoin-setting');
+
+    generalSetting.value = generalThreshold;
+    kucoinSetting.value = kucoinThreshold;
+
+    if (generalThreshold !== GENERAL_DEFAULT || kucoinThreshold !== KUCOIN_DEFAULT) {
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold });
+    }
+
+    function onSettingChange({ target }) {
+      const value = target.value !== 0 && Number(target.value) === 0 ? NaN : target.value;
+
+      if (target.name === 'general') {
+        generalThreshold = isNaN(value) ? GENERAL_DEFAULT : value;
+      } else {
+        kucoinThreshold = isNaN(value) ? KUCOIN_DEFAULT : value;
+      }
+
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold });
+    }
+
+    generalSetting.addEventListener('change', onSettingChange, false);
+    kucoinSetting.addEventListener('change', onSettingChange, false);
+
     function getCoinbasePrices() {
       const exchangePrices = CRYPTO.reduce((prices, currency) => {
         prices[currency] = {};
@@ -876,7 +955,7 @@
 
               const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
 
-              if (isKucoin && percentage >= 3 || !isKucoin && percentage >= 1) {
+              if (isKucoin && percentage >= kucoinThreshold || !isKucoin && percentage >= generalThreshold) {
                 notifications.push({ currency, percentage: percentage.toFixed(2) });
               }
             }
