@@ -79,6 +79,7 @@
     <a target="_blank" href="https://www.huobi.pro/finance/">Huobi wallets</a>
     <a target="_blank" href="https://www.kucoin.com/#/user/account/dashboard">Kucoin wallets</a>
     <a target="_blank" href="https://www.kraken.com/u/trade">Kraken wallets</a>
+    <a target="_blank" href="https://hitbtc.com/account">HitBTC wallets</a>
 
   </div>
 
@@ -106,6 +107,8 @@
       <th>Kucoin</th>
       <th>Status</th>
       <th>Kraken</th>
+      <th>HitBTC</th>
+      <th>Status</th>
       <th>Difference</th>
     </tr>
   </table>
@@ -274,7 +277,6 @@
       'KNC',
       'LEND',
       'LOOM',
-      'MEET',
       'MOD',
       'MTH',
       'MTN',
@@ -302,62 +304,155 @@
       'WAN',
       'WAX',
       'WTC',
-      'ZIL'
+      'ZIL',
+      'ACAT',
+      'AE',
+      'AEON',
+      'AMP',
+      'ANT',
+      'ARDR',
+      'AXP',
+      'BCN',
+      'BOS',
+      'BQX',
+      'CAT',
+      'CDT',
+      'CFI',
+      'CHSB',
+      'CND',
+      'COV',
+      'DADI',
+      'DATX',
+      'DCT',
+      'DLT',
+      'DOGE',
+      'EBTC',
+      'EDG',
+      'EDO',
+      'EKO',
+      'EMC',
+      'FOTA',
+      'FUEL',
+      'FUN',
+      'GAME',
+      'GNO',
+      'GUP',
+      'ICN',
+      'IHT',
+      'KICK',
+      'MAN',
+      'MTX',
+      'NGC',
+      'NXC',
+      'NXT',
+      'OAX',
+      'POLL',
+      'PPC',
+      'PTOY',
+      'R',
+      'SBD',
+      'SBTC',
+      'SC',
+      'SMT',
+      'SNGLS',
+      'SOC',
+      'STX',
+      'SWFTC',
+      'SWT',
+      'TEL',
+      'TIME',
+      'TIO',
+      'TRST',
+      'VIBE',
+      'XDN',
+      'ZPT'
     ];
 
     const COINMARKETCAP = {
       ABT: 'arcblock',
+      ACAT: 'alphacat',
       ACT: 'achain',
       ADA: 'cardano',
       ADX: 'adx-net',
+      AE: 'aeternity',
+      AEON: 'aeon',
       AION: 'aion',
       AMB: 'amber',
+      AMP: 'synereo',
+      ANT: 'aragon',
       APPC: 'appcoins',
+      ARDR: 'ardor',
       ARK: 'ark',
       ARN: 'aeron',
       AST: 'airswap',
+      AXP: 'axpire',
       BAT: 'basic-attention-token',
       BCD: 'bitcoin-diamond',
       BCH: 'bitcoin-cash',
+      BCN: 'bytecoin-bcn',
       BCPT: 'blockmason',
       BLZ: 'bluzelle',
       BNT: 'bancor',
+      BOS: 'boscoin',
       BRD: 'bread',
+      BQX: 'ethos',
       BTG: 'bitcoin-gold',
       BTM: 'bytom',
       BTS: 'bitshares',
+      CAT: 'bitclave',
+      CDT: 'blox',
+      CFI: 'cofound-it',
       CHAT: 'chatcoin',
+      CHSB: 'swissborg',
       CLOAK: 'cloakcoin',
       CMT: 'cybermiles',
+      CND: 'cindicator',
+      COV: 'covesting',
       CVC: 'civic',
+      DADI: 'dadi',
       DASH: 'dash',
       DAT: 'datum',
+      DATX: 'datx',
       DBC: 'deepbrain-chain',
+      DCT: 'decent',
       DGB: 'digibyte',
       DGD: 'digixdao',
+      DLT: 'agrello-delta',
       DNT: 'district0x',
       DOGE: 'dogecoin',
       DTA: 'data',
+      EBTC: 'ebtcnew',
+      EDG: 'edgeless',
+      EDO: 'eidoo',
+      EKO: 'echolink',
       ELF: 'aelf',
+      EMC: 'emercoin',
       ENG: 'enigma-project',
       ENJ: 'enjin-coin',
       EOS: 'eos',
       ETC: 'ethereum-classic',
       EVX: 'everex',
       ETH: 'ethereum',
+      FOTA: 'fortuna',
+      FUEL: 'etherparty',
+      FUN: 'funfair',
+      GAME: 'gamecredits',
       GAS: 'gas',
       GNO: 'gnosis-gno',
       GNT: 'golem-network-tokens',
       GRS: 'groestlcoin',
       GTO: 'gifto',
+      GUP: 'guppy',
       GVT: 'genesis-vision',
       HSR: 'hshare',
       ICN: 'iconomi',
       ICX: 'icon',
+      IHT: 'iht-real-estate-protocol',
       INS: 'ins-ecosystem',
       IOST: 'iostoken',
       IOTA: 'iota',
       ITC: 'iot-chain',
+      KICK: 'kickico',
       KMD: 'komodo',
       KNC: 'kyber-network',
       LEND: 'ethlend',
@@ -367,19 +462,24 @@
       LSK: 'lisk',
       LTC: 'litecoin',
       LUN: 'lunyr',
+      MAN: 'matrix-ai-network',
       MANA: 'decentraland',
       MCO: 'monaco',
-      MEET: 'coinmeet',
       MLN: 'melon',
       MOD: 'modum',
       MTH: 'monetha',
       MTL: 'metal',
       MTN: 'medical-chain',
+      MTX: 'matryx',
       NANO: 'nano',
       NAV: 'nav-coin',
       NEBL: 'neblio',
       NEO: 'neo',
+      NGC: 'naga',
       NULS: 'nuls',
+      NXC: 'nexium',
+      NXT: 'nxt',
+      OAX: 'oax',
       OCN: 'odyssey',
       OMG: 'omisego',
       ONT: 'ontology',
@@ -387,13 +487,17 @@
       PAY: 'tenx',
       PIVX: 'pivx',
       POE: 'poet',
+      POLL: 'clearpoll',
       POLY: 'polymath-network',
       POWR: 'power-ledger',
+      PPC: 'peercoin',
       PPT: 'populous',
       PRO: 'propy',
+      PTOY: 'patientory',
       QLC: 'qlink',
       QSP: 'quantstamp',
       QTUM: 'qtum',
+      R: 'revain',
       RCN: 'ripio-credit-network',
       RDN: 'raiden-network-token',
       REP: 'augur',
@@ -401,20 +505,33 @@
       RLC: 'rlc',
       RPX: 'red-pulse',
       SALT: 'salt',
+      SBD: 'steem-dollars',
+      SBTC: 'super-bitcoin',
+      SC: 'siacoin',
+      SMT: 'smartmesh',
       SNC: 'suncontract',
+      SNGLS: 'singulardtv',
       SNM: 'sonm',
       SNT: 'status',
+      SOC: 'all-sports',
       SRN: 'sirin-labs-token',
+      STEEM: 'steem',
       STK: 'stk',
       STORJ: 'storj',
-      STRAT: 'stratis',
-      STEEM: 'steem',
       STORM: 'storm',
+      STRAT: 'stratis',
+      STX: 'stox',
       SUB: 'substratum',
+      SWFTC: 'swftcoin',
+      SWT: 'swarm-city',
       SYS: 'syscoin',
+      TEL: 'telcoin',
       THETA: 'theta-token',
+      TIME: 'chronobank',
+      TIO: 'trade-token',
       TNB: 'time-new-bank',
       TNT: 'tierion',
+      TRST: 'trust',
       TRX: 'tron',
       TUSD: 'trueusd',
       UKG: 'unikoin-gold',
@@ -422,12 +539,14 @@
       VEN: 'vechain',
       VIA: 'viacoin',
       VIB: 'viberate',
+      VIBE: 'vibe',
       WAN: 'wanchain',
       WAVES: 'waves',
       WAX: 'wax',
       WINGS: 'wings',
       WPR: 'wepower',
       WTC: 'walton',
+      XDN: 'digitalnote',
       XEM: 'nem',
       XLM: 'stellar',
       XMR: 'monero',
@@ -437,13 +556,14 @@
       ZEC: 'zcash',
       ZEN: 'zencash',
       ZIL: 'zilliqa',
+      ZPT: 'zeepin',
       ZRX: '0x'
     };
 
     const DENORMALIZE = { BCH: 'BCC' };
     const TO_LEGACY = { NANO: 'XRB', PRO: 'PROPY' };
 
-    const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin', 'kraken'];
+    const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin', 'kraken', 'hitbtc'];
 
     const table = document.querySelector('.crypto');
 
@@ -469,6 +589,8 @@
         <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${legacyName}-BTC"></a></td>
         <td class="kucoin-status status"></td>
         <td class="kraken"><a target="_blank" href="https://www.kraken.com/u/trade"</a></td>
+        <td class="hitbtc"><a target="_blank" href="https://hitbtc.com/exchange/${currency}-to-BTC"</a></td>
+        <td class="hitbtc-status status"></td>
         <td class="difference-all"><a target="_blank"></a></td>
       `;
 
@@ -531,19 +653,23 @@
     }
 
     function getChanges() {
-      const half = Math.floor(CRYPTO.length / 2);
-      const firstHalf = CRYPTO.slice(0, half).join();
-      const secondHalf = CRYPTO.slice(half).join();
+      const third = Math.floor(CRYPTO.length / 3);
+      const firstThird = CRYPTO.slice(0, third).join();
+      const secondThird = CRYPTO.slice(third, 2 * third).join();
+      const thirdThird = CRYPTO.slice(2 * third).join();
 
       return Promise.all([
-        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${firstHalf}&tsyms=BTC`)
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${firstThird}&tsyms=BTC`)
           .then(response => response.json())
           .then(({ RAW: prices }) => prices),
-        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${secondHalf}&tsyms=BTC`)
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${secondThird}&tsyms=BTC`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => prices),
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${thirdThird}&tsyms=BTC`)
           .then(response => response.json())
           .then(({ RAW: prices }) => prices)
-      ]).then(([firstHalfPrices, secondHalfPrices]) => {
-        const prices = Object.assign({}, firstHalfPrices, secondHalfPrices);
+      ]).then(([firstThirdPrices, secondThirdPrices, thirdThirdPrices]) => {
+        const prices = Object.assign({}, firstThirdPrices, secondThirdPrices, thirdThirdPrices);
 
         CRYPTO.forEach(currency => {
           const price = prices[currency];
@@ -634,13 +760,15 @@
             const huobiEntry = document.querySelector(`.${currency} .huobi a`);
             const kucoinEntry = document.querySelector(`.${currency} .kucoin a`);
             const krakenEntry = document.querySelector(`.${currency} .kraken a`);
+            const hitbtcEntry = document.querySelector(`.${currency} .hitbtc a`);
 
             [
               bittrexEntry,
               binanceEntry,
               huobiEntry,
               kucoinEntry,
-              krakenEntry
+              krakenEntry,
+              hitbtcEntry
             ].forEach(entry => entry.classList.remove('higher', 'lower'));
 
             const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
@@ -757,6 +885,8 @@
             const binance = prices[currency].binance;
 
             if (!bittrex || !binance) return;
+            if (!bittrex.bid || !bittrex.ask) return;
+            if (!binance.bid || !binance.ask) return;
 
             const differences = {
               binance: bittrex.bid - binance.ask,

@@ -96,6 +96,8 @@ function normalize(exchangeName) {
     case 'XXRP': return 'XRP';
     case 'XZEC': return 'ZEC';
     case 'USD': return 'USDT';
+    case 'E': return 'EBTC';
+    case 'S': return 'SBTC';
     default: return currency;
   }
 }
