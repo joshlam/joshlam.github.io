@@ -78,6 +78,7 @@
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
     <a target="_blank" href="https://www.huobi.pro/finance/">Huobi wallets</a>
     <a target="_blank" href="https://www.kucoin.com/#/user/account/dashboard">Kucoin wallets</a>
+    <a target="_blank" href="https://www.kraken.com/u/trade">Kraken wallets</a>
 
   </div>
 
@@ -104,6 +105,7 @@
       <th>Status</th>
       <th>Kucoin</th>
       <th>Status</th>
+      <th>Kraken</th>
       <th>Difference</th>
     </tr>
   </table>
@@ -441,7 +443,7 @@
     const DENORMALIZE = { BCH: 'BCC' };
     const TO_LEGACY = { NANO: 'XRB', PRO: 'PROPY' };
 
-    const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin'];
+    const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin', 'kraken'];
 
     const table = document.querySelector('.crypto');
 
@@ -466,6 +468,7 @@
         <td class="huobi-status status"></td>
         <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${legacyName}-BTC"></a></td>
         <td class="kucoin-status status"></td>
+        <td class="kraken"><a target="_blank" href="https://www.kraken.com/u/trade"</a></td>
         <td class="difference-all"><a target="_blank"></a></td>
       `;
 
@@ -608,6 +611,8 @@
 
               const statusEntry = document.querySelector(`.${currency} .${exchange}-status`);
 
+              if (!statusEntry) return;
+
               statusEntry.innerHTML = '';
 
               if (market.marketActive && market.depositsEnabled && market.withdrawalsEnabled) return;
@@ -628,12 +633,14 @@
             const binanceEntry = document.querySelector(`.${currency} .binance a`);
             const huobiEntry = document.querySelector(`.${currency} .huobi a`);
             const kucoinEntry = document.querySelector(`.${currency} .kucoin a`);
+            const krakenEntry = document.querySelector(`.${currency} .kraken a`);
 
             [
               bittrexEntry,
               binanceEntry,
               huobiEntry,
-              kucoinEntry
+              kucoinEntry,
+              krakenEntry
             ].forEach(entry => entry.classList.remove('higher', 'lower'));
 
             const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
@@ -705,6 +712,10 @@
                   exchangeUrl = `https://www.kucoin.com/#/trade.pro/${legacyName}-BTC`;
                   kucoinEntry.classList.add('lower');
                   break;
+                case 'kraken':
+                  exchangeUrl = 'https://www.kraken.com/u/trade';
+                  krakenEntry.classList.add('lower');
+                  break;
               }
 
               differenceEntry.href = exchangeUrl;
@@ -721,6 +732,9 @@
                   break;
                 case 'kucoin':
                   kucoinEntry.classList.add('higher');
+                  break;
+                case 'kraken':
+                  krakenEntry.classList.add('higher');
                   break;
               }
 
