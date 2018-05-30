@@ -39,6 +39,7 @@ exports.checkMarkets = function checkMarkets(exchangeData) {
   ['binanceWallets', 'binancePrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
   ['huobiWallets', 'huobiPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Huobi', notifications));
   ['kucoinWallets', 'kucoinPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Kucoin', notifications));
+  ['hitbtcWallets', 'hitbtcPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'HitBTC', notifications));
 
   checkExchangeData('krakenPrices', exchangeData.krakenPrices, 'Kraken', notifications);
 

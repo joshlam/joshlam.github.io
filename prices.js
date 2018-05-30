@@ -95,6 +95,7 @@ function normalize(exchangeName) {
     case 'XXMR': return 'XMR';
     case 'XXRP': return 'XRP';
     case 'XZEC': return 'ZEC';
+    case 'USD': return 'USDT';
     default: return currency;
   }
 }
@@ -109,7 +110,9 @@ function normalizeExchangeData({
   huobiWallets,
   kucoinPrices,
   kucoinWallets,
-  krakenPrices
+  krakenPrices,
+  hitbtcPrices,
+  hitbtcWallets
 }) {
   return CRYPTO.reduce((currencies, currency) => {
     const exchangeData = {};
@@ -215,6 +218,26 @@ function normalizeExchangeData({
         withdrawalsEnabled: krakenPrices[currency].withdrawalsEnabled,
         notice: krakenPrices[currency].notice
       };
+    }
+
+    if (hitbtcPrices[currency]) {
+      exchangeData.hitbtc = {
+        bid: hitbtcPrices[currency].bid,
+        ask: hitbtcPrices[currency].ask,
+        last: hitbtcPrices[currency].last
+      };
+    }
+
+    if (hitbtcWallets[currency]) {
+      if (!exchangeData.hitbtc) exchangeData.hitbtc = {};
+
+      Object.assign(exchangeData.hitbtc, {
+        confirmations: hitbtcWallets[currency].confirmations,
+        depositsEnabled: hitbtcWallets[currency].depositsEnabled,
+        withdrawalsEnabled: hitbtcWallets[currency].withdrawalsEnabled,
+        marketActive: hitbtcWallets[currency].marketActive,
+        notice: null
+      });
     }
 
     currencies[currency] = exchangeData;
@@ -433,6 +456,34 @@ function getPrices(diff) {
     return Promise.resolve({});
   });
 
+  const hitbtcPricesPromise = get('https://api.hitbtc.com/api/2/public/ticker', (prices, market) => {
+    if (market.symbol.slice(market.symbol.length - 3) !== 'BTC') return prices;
+
+    const currency = market.symbol.split('BTC')[0];
+
+    prices[normalize(currency)] = {
+      bid: Number(market.bid),
+      ask: Number(market.ask),
+      last: Number(market.last)
+    };
+
+    return prices;
+  });
+
+  const hitbtcWalletsPromise = get('https://api.hitbtc.com/api/2/public/currency', (wallets, wallet) => {
+    if (wallet.delisted) return wallets;
+
+    wallets[normalize(wallet.id)] = {
+      confirmations: wallet.payinConfirmations,
+      depositsEnabled: wallet.payinEnabled,
+      withdrawalsEnabled: wallet.payoutEnabled,
+      marketActive: true,
+      notice: null
+    };
+
+    return wallets;
+  });
+
   Promise.all([
     bittrexPricesPromise,
     bittrexWalletsPromise,
@@ -443,8 +494,23 @@ function getPrices(diff) {
     huobiWalletsPromise,
     kucoinPricesPromise,
     kucoinWalletsPromise,
-    krakenPricesPromise
-  ]).then(([bittrexPrices, bittrexWallets, binancePrices, binanceOrders, binanceWallets, huobiPrices, huobiWallets, kucoinPrices, kucoinWallets, krakenPrices]) => {
+    krakenPricesPromise,
+    hitbtcPricesPromise,
+    hitbtcWalletsPromise
+  ]).then(([
+    bittrexPrices,
+    bittrexWallets,
+    binancePrices,
+    binanceOrders,
+    binanceWallets,
+    huobiPrices,
+    huobiWallets,
+    kucoinPrices,
+    kucoinWallets,
+    krakenPrices,
+    hitbtcPrices,
+    hitbtcWallets
+  ]) => {
     const exchangeData =  {
       bittrexPrices,
       bittrexWallets,
@@ -455,7 +521,9 @@ function getPrices(diff) {
       huobiWallets,
       kucoinPrices,
       kucoinWallets,
-      krakenPrices
+      krakenPrices,
+      hitbtcPrices,
+      hitbtcWallets
     };
 
     cachedPrices = {
