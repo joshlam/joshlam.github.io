@@ -267,6 +267,7 @@ const BINANCE = Object.freeze([
   'INS',
   'IOST',
   'IOTA',
+  'IOTX',
   'KMD',
   'KNC',
   'LEND',
