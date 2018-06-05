@@ -1041,7 +1041,7 @@ const SHARED_COINS = new Set();
   });
 });
 
-const CRYPTO = Object.freeze(Array.from(SHARED_COINS).sort());
+const CRYPTO = Object.freeze(Array.from(EXCHANGE_COINS).sort());
 
 const MILLISECOND = 1;
 const SECOND = 1000 * MILLISECOND;
