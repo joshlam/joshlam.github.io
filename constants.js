@@ -291,6 +291,7 @@ const BINANCE = Object.freeze([
   'NEBL',
   'NEO',
   'NULS',
+  'NXS',
   'OAX',
   'OMG',
   'ONT',
