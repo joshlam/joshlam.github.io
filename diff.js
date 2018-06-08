@@ -17,6 +17,19 @@ const notificationLog = [];
 
 let lastNotification = Date.now() - 5 * TIME.MINUTE;
 
+function shouldNotify({ isKucoin, isHitBTC, level }) {
+  if (isKucoin && isHitBTC) return level > 4;
+  if (isKucoin || isHitBTC) return level > 2;
+
+  return level > 1;
+}
+
+function isUrgent({ isKucoin, isHitBTC, level }) {
+  if (isKucoin && isHitBTC) return level > 5;
+
+  return level > 4;
+}
+
 exports.getNotifications = function getNotifications() {
   return { notifications: notificationLog };
 };
@@ -80,8 +93,9 @@ exports.diff = function diff(prices) {
     if (percentage > 1)  level += 1;
 
     const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
+    const isHitBTC = greatest.buy === 'hitbtc' || greatest.sell == 'hitbtc';
 
-    if (isKucoin && level > 2 || !isKucoin && level > 1) {
+    if (shouldNotify({ isKucoin, isHitBTC, level })) {
       const buyFrom = EXCHANGE_ABRV[greatest.buy];
       const sellAt = EXCHANGE_ABRV[greatest.sell];
 
@@ -94,7 +108,7 @@ exports.diff = function diff(prices) {
 
       notifications.push(notification);
 
-      if (level > 4) urgent.push(notification);
+      if (isUrgent({ isKucoin, isHitBTC, level })) urgent.push(notification);
 
       diffLog.lastNotification = now;
       diffLog.numNotifications += 1;
