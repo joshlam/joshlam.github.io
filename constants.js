@@ -245,6 +245,7 @@ const BINANCE = Object.freeze([
   'CMT',
   'CND',
   'DASH',
+  'DATA',
   'DGD',
   'DLT',
   'DNT',
