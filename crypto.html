@@ -193,7 +193,7 @@
 
     const usdPrices = document.querySelector('.usd-prices');
 
-    ['BTC', 'BCH', 'ETH', 'LTC'].forEach(currency => {
+    ['BTC', 'BCH', 'ETH', 'ETC', 'LTC'].forEach(currency => {
       const row = document.createElement('li');
 
       row.classList.add(`${currency}-USD`);
@@ -716,7 +716,7 @@
       exchangePrices.BTC = {};
 
       Promise.all(
-        ['BTC', 'BCH', 'ETH', 'LTC'].reduce((promises, currency) => {
+        ['BTC', 'BCH', 'ETH', 'ETC', 'LTC'].reduce((promises, currency) => {
           promises.push(
             fetch(`https://api.gdax.com/products/${currency}-USD/ticker`)
               .then(response => response.json())
