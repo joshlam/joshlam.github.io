@@ -118,6 +118,8 @@
       <input type="number" name="general" class="general-setting setting">
       <label for="kucoin">Kucoin</label>
       <input type="number" name="kucoin" class="kucoin-setting setting">
+      <label for="hitbtc">HitBTC</label>
+      <input type="number" name="hitbtc" class="hitbtc-setting setting">
     </div>
   </div>
 
@@ -674,37 +676,49 @@
 
     const GENERAL_DEFAULT = 1;
     const KUCOIN_DEFAULT = 3;
+    const HITBTC_DEFAULT = 3;
 
     const generalParameter = getParameterByName('general');
     const kucoinParameter = getParameterByName('kucoin');
+    const hitbtcParameter = getParameterByName('hitbtc');
 
     let generalThreshold = isNaN(generalParameter) ? GENERAL_DEFAULT : generalParameter;
     let kucoinThreshold =  isNaN(kucoinParameter) ? KUCOIN_DEFAULT : kucoinParameter;
+    let hitbtcThreshold =  isNaN(hitbtcParameter) ? HITBTC_DEFAULT : hitbtcParameter;
 
     const generalSetting = document.querySelector('.general-setting');
     const kucoinSetting = document.querySelector('.kucoin-setting');
+    const hitbtcSetting = document.querySelector('.hitbtc-setting');
 
     generalSetting.value = generalThreshold;
     kucoinSetting.value = kucoinThreshold;
+    hitbtcSetting.value = hitbtcThreshold;
 
-    if (generalThreshold !== GENERAL_DEFAULT || kucoinThreshold !== KUCOIN_DEFAULT) {
-      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold });
+    if (generalThreshold !== GENERAL_DEFAULT || kucoinThreshold !== KUCOIN_DEFAULT || hitbtcThreshold !== HITBTC_DEFAULT) {
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold, hitbtc: hitbtcThreshold });
     }
 
     function onSettingChange({ target }) {
       const value = target.value !== 0 && Number(target.value) === 0 ? NaN : target.value;
 
-      if (target.name === 'general') {
-        generalThreshold = isNaN(value) ? GENERAL_DEFAULT : value;
-      } else {
-        kucoinThreshold = isNaN(value) ? KUCOIN_DEFAULT : value;
+      switch (target.name) {
+        case 'general':
+          generalThreshold = isNaN(value) ? GENERAL_DEFAULT : value;
+          break;
+        case 'kucoin':
+          kucoinThreshold = isNaN(value) ? KUCOIN_DEFAULT : value;
+          break;
+        case 'hitbtc':
+          hitbtcThreshold = isNaN(value) ? HITBTC_DEFAULT : value;
+          break;
       }
 
-      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold });
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold, hitbtc: hitbtcThreshold });
     }
 
     generalSetting.addEventListener('change', onSettingChange, false);
     kucoinSetting.addEventListener('change', onSettingChange, false);
+    hitbtcSetting.addEventListener('change', onSettingChange, false);
 
     function getCoinbasePrices() {
       const exchangePrices = CRYPTO.reduce((prices, currency) => {
@@ -809,6 +823,13 @@
       tooltip.appendChild(tooltipText);
 
       return tooltip;
+    }
+
+    function shouldNotify(isKucoin, isHitBTC, percentage) {
+      if (isKucoin) return percentage >= kucoinThreshold;
+      if (isHitBTC) return percentage >= hitbtcThreshold;
+
+      return percentage >= generalThreshold;
     }
 
     function getPrices() {
@@ -979,8 +1000,9 @@
               }
 
               const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
+              const isHitBTC = greatest.buy === 'hitbtc' || greatest.sell == 'hitbtc';
 
-              if (isKucoin && percentage >= kucoinThreshold || !isKucoin && percentage >= generalThreshold) {
+              if (shouldNotify(isKucoin, isHitBTC, percentage)) {
                 notifications.push({ currency, percentage: percentage.toFixed(2) });
               }
             }
