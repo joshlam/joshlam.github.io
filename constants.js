@@ -1,4 +1,4 @@
-const EXCHANGES = Object.freeze(['bittrex', 'binance', 'huobi', 'kucoin', 'kraken', 'hitbtc']);
+const EXCHANGES = Object.freeze(['bittrex', 'binance', 'huobi', 'kucoin', 'kraken']);
 const EXCHANGE_ABRV = Object.freeze({
   bittrex: 'Bt',
   binance: 'Bn',
