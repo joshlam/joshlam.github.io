@@ -134,7 +134,7 @@ exports.diff = function diff(prices) {
 
     console.log('Sending notifications', notifications.join('; '));
 
-    sendNotification(notifications.join('; '));
+    // sendNotification(notifications.join('; '));
   } else if (now - lastNotification > 30 * TIME.SECOND && urgent.length > 0) {
     lastNotification = now;
 

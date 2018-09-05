@@ -57,6 +57,8 @@ exports.checkQueues = function checkQueues(wallets, prices) {
   const notifications = [];
 
   Object.keys(wallets).forEach(currency => {
+    if (currency === 'BTC') return;
+
     const { depositQueueDepth, withdrawQueueDepth } = wallets[currency];
     const price = prices[currency] ? prices[currency].last : null;
 
