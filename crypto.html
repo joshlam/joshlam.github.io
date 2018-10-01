@@ -164,6 +164,8 @@
       <li>Page with all graphs</li>
       <li>Add alerts on hour change (or more granular)</li>
       <li>Add HADAX, Bithumb</li>
+      <li>Toggle which exchanges are used in diffing</li>
+      <li>Toggle price in Bitcoin or price in satoshis</li>
     </ul>
   </div>
 
@@ -728,6 +730,8 @@
     kucoinSetting.addEventListener('change', onSettingChange, false);
     hitbtcSetting.addEventListener('change', onSettingChange, false);
 
+    const SATOSHI_SHIFT = 10 ** 8;
+
     function getCoinbasePrices() {
       const exchangePrices = CRYPTO.reduce((prices, currency) => {
         prices[currency] = {};
@@ -762,7 +766,7 @@
                 const price = Number(ticker.price);
                 const entry = document.querySelector(`.${currency} .coinbase a`);
 
-                entry.textContent = price;
+                entry.textContent = Math.round(price * SATOSHI_SHIFT);
                 exchangePrices[currency].coinbase = price;
               })
           )
@@ -859,7 +863,7 @@
 
               priceEntry.appendChild(
                 createTooltip(
-                  price,
+                  price ? Math.round(price * SATOSHI_SHIFT) : price,
                   `
                     Bid: ${market.bid},
                     Ask: ${market.ask},
