@@ -427,7 +427,7 @@ function getPrices(diff) {
       notice: null
     };
 
-    const quote = market.base[0] === 'X' ? market.quote : market.quote.slice(1);
+    const quote = market.base[0] === 'X' && market.base !== 'XTZ' ? market.quote : market.quote.slice(1);
 
     krakenSymbols.push({
       currency,
