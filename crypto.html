@@ -685,10 +685,10 @@
       return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
 
-    function updateQueryParams({ general, kucoin }) {
+    function updateQueryParams({ general, kucoin, hitbtc }) {
       const base = document.location.href.match('crypto.html') ? 'crypto.html' : 'crypto';
 
-      history.pushState({}, '', `${base}?general=${general}&kucoin=${kucoin}`);
+      history.pushState({}, '', `${base}?general=${general}&kucoin=${kucoin}&hitbtc=${hitbtc}`);
     }
 
     const GENERAL_DEFAULT = 1;
