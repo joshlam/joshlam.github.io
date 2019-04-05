@@ -748,6 +748,8 @@
 
       exchangePrices.BTC = {};
 
+      let backoff = 2 * COINBASE.length;
+
       Promise.all(
         COINBASE.reduce((promises, currency) => {
           promises.push(
@@ -759,8 +761,9 @@
 
                 if (!price) return void entry.classList.add('warning');
 
-                entry.classList.remove('warning');
+                backoff--;
 
+                entry.classList.remove('warning');
                 entry.textContent = `$${price}`;
 
                 if (currency !== 'BTC') return;
@@ -780,8 +783,9 @@
 
                 if (!price) return void entry.classList.add('warning');
 
-                entry.classList.remove('warning');
+                backoff--;
 
+                entry.classList.remove('warning');
                 entry.textContent = price;
                 exchangePrices[currency].coinbase = price;
               })
@@ -792,7 +796,7 @@
       ).then(() => {
         document.title = `$${exchangePrices.BTC.coinbase}`;
 
-        setTimeout(getCoinbasePrices, SECOND);
+        setTimeout(getCoinbasePrices, Math.max(1, backoff / 2) * SECOND);
       }).catch(() => {
         setTimeout(getCoinbasePrices, 2 * SECOND);
       });
