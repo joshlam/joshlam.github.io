@@ -82,6 +82,8 @@ function normalize(exchangeName) {
 
   switch (currency) {
     case 'BCC': return 'BCH';
+    case 'BCHABC': return 'BCH';
+    case 'BCHSV': return 'BSV';
     case 'PROPY': return 'PRO';
     case 'XRB': return 'NANO';
     case 'XETC': return 'ETC';
@@ -98,6 +100,15 @@ function normalize(exchangeName) {
     case 'USD': return 'USDT';
     case 'E': return 'EBTC';
     case 'S': return 'SBTC';
+    default: return currency;
+  }
+}
+
+function normalizeKucoin(exchangeName) {
+  const currency = normalize(exchangeName);
+
+  switch (currency) {
+    case 'HOT': return 'HOTNOW';
     default: return currency;
   }
 }
@@ -392,7 +403,7 @@ function getPrices(diff) {
   const kucoinPricesPromise = get('https://api.kucoin.com/v1/market/open/symbols', (prices, market) => {
     if (market.coinTypePair != 'BTC') return prices;
 
-    prices[normalize(market.coinType)] = {
+    prices[normalizeKucoin(market.coinType)] = {
       bid: market.buy,
       ask: market.sell,
       last: market.lastDealPrice,
@@ -403,7 +414,7 @@ function getPrices(diff) {
   });
 
   const kucoinWalletsPromise = get('https://api.kucoin.com/v1/market/open/coins', (wallets, wallet) => {
-    wallets[normalize(wallet.coin)] = {
+    wallets[normalizeKucoin(wallet.coin)] = {
       confirmations: wallet.confirmationCount,
       depositsEnabled: wallet.enableDeposit,
       withdrawalsEnabled: wallet.enableWithdraw,

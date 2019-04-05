@@ -222,9 +222,9 @@
       'BCH',
       'BCPT',
       'BNT',
+      'BSV',
       'BTG',
       'BTT',
-      'CLOAK',
       'CVC',
       'DASH',
       'DCR',
@@ -270,7 +270,6 @@
       'VIA',
       'VIB',
       'WAVES',
-      'WINGS',
       'XEM',
       'XLM',
       'XMR',
@@ -282,6 +281,7 @@
       'ZRX',
       'APPC',
       'AST',
+      'BTM',
       'BFT',
       'BLZ',
       'BTS',
@@ -292,11 +292,14 @@
       'GNT',
       'ICX',
       'IOTA',
+      'LBA',
       'LINK',
       'NAS',
       'NCASH',
+      'OCN',
       'OST',
       'PRO',
+      'REN',
       'SRN',
       'THETA',
       'TNB',
@@ -304,6 +307,7 @@
       'WAN',
       'WPR',
       'WTC',
+      'XTZ',
       'MLN',
       'ABT',
       'ACT',
@@ -312,7 +316,6 @@
       'ARN',
       'BCD',
       'BRD',
-      'BTM',
       'CBC',
       'DAT',
       'DBC',
@@ -324,6 +327,7 @@
       'ELF',
       'EOS',
       'EVX',
+      'FET',
       'GAS',
       'GVT',
       'HC',
@@ -334,13 +338,11 @@
       'KEY',
       'KNC',
       'LEND',
-      'MOD',
       'MTH',
       'MTN',
       'NANO',
       'NEBL',
       'NULS',
-      'OCN',
       'ONT',
       'PAY',
       'PHX',
@@ -352,8 +354,8 @@
       'REQ',
       'SNC',
       'SNM',
+      'SOLVE',
       'STK',
-      'SUB',
       'UKG',
       'UTK',
       'VET',
@@ -414,12 +416,14 @@
       'SMT',
       'SNGLS',
       'SOC',
+      'SPC',
       'SWFTC',
       'SWT',
       'TEL',
       'TIME',
       'TIO',
       'VIBE',
+      'WINGS',
       'XDN',
       'ZPT'
     ];
@@ -453,6 +457,7 @@
       BNT: 'bancor',
       BOS: 'boscoin',
       BRD: 'bread',
+      BSV: 'bitcoin-sv',
       BQX: 'ethos',
       BTG: 'bitcoin-gold',
       BTM: 'bytom',
@@ -500,6 +505,7 @@
       ETC: 'ethereum-classic',
       EVX: 'everex',
       ETH: 'ethereum',
+      FET: 'fetch',
       FOTA: 'fortuna',
       FUEL: 'etherparty',
       FUN: 'funfair',
@@ -525,6 +531,7 @@
       KICK: 'kickico',
       KMD: 'komodo',
       KNC: 'kyber-network',
+      LBA: 'libra-credit',
       LEND: 'ethlend',
       LINK: 'chainlink',
       LOOM: 'loom-network',
@@ -557,6 +564,7 @@
       OAX: 'oax',
       OCN: 'odyssey',
       OMG: 'omisego',
+      ONG: 'ontology-gas',
       ONT: 'ontology',
       OST: 'ost',
       PAY: 'tenx',
@@ -577,6 +585,7 @@
       R: 'revain',
       RCN: 'ripio-credit-network',
       RDN: 'raiden-network-token',
+      REN: 'ren',
       REP: 'augur',
       REQ: 'request-network',
       RLC: 'rlc',
@@ -591,6 +600,8 @@
       SNM: 'sonm',
       SNT: 'status',
       SOC: 'all-sports',
+      SOLVE: 'solve',
+      SPC: 'spacechain',
       SRN: 'sirin-labs-token',
       STEEM: 'steem',
       STK: 'stk',
@@ -626,6 +637,7 @@
       XLM: 'stellar',
       XMR: 'monero',
       XRP: 'ripple',
+      XTZ: 'tezos',
       XVG: 'verge',
       XZC: 'zcoin',
       ZEC: 'zcash',
@@ -635,7 +647,7 @@
       ZRX: '0x'
     };
 
-    const DENORMALIZE = { BCH: 'BCC' };
+    const DENORMALIZE = { BCH: 'BCHABC', BSV: 'BCHSV' };
     const TO_LEGACY = { NANO: 'XRB', PRO: 'PROPY' };
 
     const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin', 'kraken', 'hitbtc'];
@@ -653,7 +665,7 @@
       row.innerHTML = `
         <td class="currency"><a target="_blank" href="https://coinmarketcap.com/currencies/${COINMARKETCAP[currency] || currency}">${currency}</a></td>
         <td class="change"></td>
-        <td class="bittrex"><a target="_blank" href="https://bittrex.com/Market/Index?MarketName=BTC-${exchangeName}"></a></td>
+        <td class="bittrex"><a target="_blank" href="https://bittrex.com/Market/Index?MarketName=BTC-${currency}"></a></td>
         <td class="bittrex-status status"></td>
         <td class="binance"><a target="_blank" href="https://www.binance.com/trade.html?symbol=${exchangeName}_BTC"></a></td>
         <td class="binance-status status"></td>
