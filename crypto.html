@@ -755,8 +755,13 @@
               .then(response => response.json())
               .then(ticker => {
                 const price = Number(Number(ticker.price).toFixed(2));
+                const entry = document.querySelector(`.${currency}-USD .price`);
 
-                document.querySelector(`.${currency}-USD .price`).textContent = `$${price}`;
+                if (!price) return void entry.classList.add('warning');
+
+                entry.classList.remove('warning');
+
+                entry.textContent = `$${price}`;
 
                 if (currency !== 'BTC') return;
 
@@ -772,6 +777,10 @@
               .then(ticker => {
                 const price = Number(ticker.price);
                 const entry = document.querySelector(`.${currency} .coinbase a`);
+
+                if (!price) return void entry.classList.add('warning');
+
+                entry.classList.remove('warning');
 
                 entry.textContent = price;
                 exchangePrices[currency].coinbase = price;
