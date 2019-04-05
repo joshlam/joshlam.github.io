@@ -205,12 +205,12 @@ function normalizeExchangeData({
         bid: kucoinPrices[currency].bid,
         ask: kucoinPrices[currency].ask,
         last: kucoinPrices[currency].last,
-        marketActive: kucoinPrices[currency].marketActive
+        marketActive: true
       };
     }
 
     if (kucoinWallets[currency]) {
-      if (!exchangeData.kucoin) exchangeData.kucoin = {};
+      if (!exchangeData.kucoin) exchangeData.kucoin = { marketActive: false };
 
       Object.assign(exchangeData.kucoin, {
         confirmations: kucoinWallets[currency].confirmations,
@@ -400,25 +400,32 @@ function getPrices(diff) {
     return wallets;
   });
 
-  const kucoinPricesPromise = get('https://api.kucoin.com/v1/market/open/symbols', (prices, market) => {
-    if (market.coinTypePair != 'BTC') return prices;
+  const kucoinPricesPromise = get('https://openapi-v2.kucoin.com/api/v1/market/allTickers').then(({ ticker }) => {
+    return ticker.reduce((prices, market) => {
+      const [baseCurrency, quoteCurrency] = market.symbol.split('-');
 
-    prices[normalizeKucoin(market.coinType)] = {
-      bid: market.buy,
-      ask: market.sell,
-      last: market.lastDealPrice,
-      marketActive: market.trading
-    };
+      if (quoteCurrency != 'BTC') return prices;
 
-    return prices;
+      prices[normalizeKucoin(baseCurrency)] = {
+        bid: Number(market.buy),
+        ask: Number(market.sell),
+        last: Number(market.last)
+      };
+
+      return prices;
+    }, {});
+  }).catch(error => {
+    console.log(`Error in Kucoin price fetch: ${error}`);
+
+    return Promise.resolve({});
   });
 
-  const kucoinWalletsPromise = get('https://api.kucoin.com/v1/market/open/coins', (wallets, wallet) => {
-    wallets[normalizeKucoin(wallet.coin)] = {
-      confirmations: wallet.confirmationCount,
-      depositsEnabled: wallet.enableDeposit,
-      withdrawalsEnabled: wallet.enableWithdraw,
-      notice: wallet.depositRemark || wallet.withdrawRemark ? `${wallet.depositRemark}; ${wallet.withdrawRemark}` : null
+  const kucoinWalletsPromise = get('https://openapi-v2.kucoin.com/api/v1/currencies', (wallets, wallet) => {
+    wallets[normalizeKucoin(wallet.currency)] = {
+      confirmations: null,
+      depositsEnabled: wallet.isDepositEnabled,
+      withdrawalsEnabled: wallet.isWithdrawEnabled,
+      notice: null
     };
 
     return wallets;
