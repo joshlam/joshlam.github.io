@@ -794,7 +794,9 @@
           return promises
         }, [])
       ).then(() => {
-        document.title = `$${exchangePrices.BTC.coinbase}`;
+        const btcPrice = exchangePrices.BTC.coinbase;
+
+        if (btcPrice) document.title = `$${btcPrice}`;
 
         setTimeout(getCoinbasePrices, Math.max(1, backoff / 2) * SECOND);
       }).catch(() => {
