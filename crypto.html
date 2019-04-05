@@ -195,9 +195,11 @@
       if (request && 'then' in request) request.then(permissionCallback);
     }
 
+    const COINBASE = ['BTC', 'BCH', 'ETH', 'ETC', 'LTC', 'ZRX', 'XRP', 'XLM'];
+
     const usdPrices = document.querySelector('.usd-prices');
 
-    ['BTC', 'BCH', 'ETH', 'ETC', 'LTC', 'ZRX'].forEach(currency => {
+    COINBASE.forEach(currency => {
       const row = document.createElement('li');
 
       row.classList.add(`${currency}-USD`);
@@ -747,7 +749,7 @@
       exchangePrices.BTC = {};
 
       Promise.all(
-        ['BTC', 'BCH', 'ETH', 'ETC', 'LTC', 'ZRX'].reduce((promises, currency) => {
+        COINBASE.reduce((promises, currency) => {
           promises.push(
             fetch(`https://api.gdax.com/products/${currency}-USD/ticker`)
               .then(response => response.json())
