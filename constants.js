@@ -9,7 +9,6 @@ const EXCHANGE_ABRV = Object.freeze({
 });
 
 const BITTREX = Object.freeze([
-  '2GIVE',
   'ABY',
   'ADA',
   'ADT',
@@ -27,7 +26,6 @@ const BITTREX = Object.freeze([
   'BCPT',
   'BFT',
   'BITB',
-  'BITS',
   'BKX',
   'BLITZ',
   'BLK',
@@ -60,7 +58,6 @@ const BITTREX = Object.freeze([
   'DOGE',
   'DOPE',
   'DTA',
-  'DTB',
   'DYN',
   'EBST',
   'EDG',
@@ -81,14 +78,12 @@ const BITTREX = Object.freeze([
   'FTC',
   'GAM',
   'GAME',
-  'GBG',
   'GBYTE',
   'GCR',
   'GEO',
   'GLC',
   'GNO',
   'GNT',
-  'GOLOS',
   'GRC',
   'GRS',
   'GTO',
@@ -132,7 +127,6 @@ const BITTREX = Object.freeze([
   'NLC2',
   'NLG',
   'NMR',
-  'NXC',
   'NXS',
   'NXT',
   'OCN',
@@ -203,7 +197,6 @@ const BITTREX = Object.freeze([
   'VIA',
   'VIB',
   'VRC',
-  'VRM',
   'VTC',
   'WAVES',
   'WAX',
@@ -241,6 +234,7 @@ const BINANCE = Object.freeze([
   'ARK',
   'ARN',
   'AST',
+  'ATOM',
   'BAT',
   'BCH',
   'BCD',
@@ -387,6 +381,7 @@ const HUOBI = Object.freeze([
   'AIDOC',
   'APPC',
   'AST',
+  'ATOM',
   'BAT',
   'BCD',
   'BCH',
@@ -715,6 +710,7 @@ const KUCOIN = Object.freeze([
 ]);
 
 const KRAKEN = Object.freeze([
+  'ATOM',
   'BCH',
   'BSV',
   'DASH',
