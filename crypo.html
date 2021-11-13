@@ -93,10 +93,8 @@
     <a target="_blank" href="https://bittrex.com/Balance">Bittrex wallets</a>
     <a target="_blank" href="https://bittrex.com/Status">Bittrex wallet statuses</a>
     <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
-    <a target="_blank" href="https://www.huobi.pro/finance/">Huobi wallets</a>
     <a target="_blank" href="https://www.kucoin.com/#/user/account/dashboard">Kucoin wallets</a>
     <a target="_blank" href="https://www.kraken.com/u/trade">Kraken wallets</a>
-    <a target="_blank" href="https://hitbtc.com/account">HitBTC wallets</a>
 
   </div>
 
@@ -118,8 +116,6 @@
       <input type="number" name="general" class="general-setting setting">
       <label for="kucoin">Kucoin</label>
       <input type="number" name="kucoin" class="kucoin-setting setting">
-      <label for="hitbtc">HitBTC</label>
-      <input type="number" name="hitbtc" class="hitbtc-setting setting">
     </div>
   </div>
 
@@ -133,13 +129,9 @@
       <th>Status</th>
       <th>Coinbase</th>
       <th>Difference</th>
-      <th>Huobi</th>
-      <th>Status</th>
       <th>Kucoin</th>
       <th>Status</th>
       <th>Kraken</th>
-      <th>HitBTC</th>
-      <th>Status</th>
       <th>Difference</th>
     </tr>
   </table>
@@ -163,7 +155,6 @@
       <li>Configurable subscriptions</li>
       <li>Page with all graphs</li>
       <li>Add alerts on hour change (or more granular)</li>
-      <li>Add HADAX, Bithumb</li>
       <li>Toggle which exchanges are used in diffing</li>
       <li>Toggle price in Bitcoin or price in satoshis</li>
       <li>Update coins script</li>
@@ -652,7 +643,7 @@
     const DENORMALIZE = { BCH: 'BCHABC', BSV: 'BCHSV' };
     const TO_LEGACY = { NANO: 'XRB', PRO: 'PROPY' };
 
-    const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin', 'kraken', 'hitbtc'];
+    const EXCHANGES = ['bittrex', 'binance', 'kucoin', 'kraken'];
 
     const table = document.querySelector('.crypto');
 
@@ -673,13 +664,9 @@
         <td class="binance-status status"></td>
         <td class="coinbase"><a target="_blank" href="https://pro.coinbase.com/trade/${currency}-BTC"></a></td>
         <td class="difference"></td>
-        <td class="huobi"><a target="_blank" href="https://www.huobi.pro/${legacyName.toLowerCase()}_btc/exchange/"></a></td>
-        <td class="huobi-status status"></td>
         <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${legacyName}-BTC"></a></td>
         <td class="kucoin-status status"></td>
         <td class="kraken"><a target="_blank" href="https://trade.kraken.com/markets/kraken/${legacyName.toLowerCase()}/btc"</a></td>
-        <td class="hitbtc"><a target="_blank" href="https://hitbtc.com/exchange/${currency}-to-BTC"</a></td>
-        <td class="hitbtc-status status"></td>
         <td class="difference-all"><a target="_blank"></a></td>
       `;
 
@@ -701,34 +688,29 @@
       return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
 
-    function updateQueryParams({ general, kucoin, hitbtc }) {
+    function updateQueryParams({ general, kucoin }) {
       const base = document.location.href.match('crypto.html') ? 'crypto.html' : 'crypto';
 
-      history.pushState({}, '', `${base}?general=${general}&kucoin=${kucoin}&hitbtc=${hitbtc}`);
+      history.pushState({}, '', `${base}?general=${general}&kucoin=${kucoin}`);
     }
 
     const GENERAL_DEFAULT = 1;
     const KUCOIN_DEFAULT = 3;
-    const HITBTC_DEFAULT = 3;
 
     const generalParameter = getParameterByName('general');
     const kucoinParameter = getParameterByName('kucoin');
-    const hitbtcParameter = getParameterByName('hitbtc');
 
     let generalThreshold = isNaN(generalParameter) ? GENERAL_DEFAULT : generalParameter;
     let kucoinThreshold =  isNaN(kucoinParameter) ? KUCOIN_DEFAULT : kucoinParameter;
-    let hitbtcThreshold =  isNaN(hitbtcParameter) ? HITBTC_DEFAULT : hitbtcParameter;
 
     const generalSetting = document.querySelector('.general-setting');
     const kucoinSetting = document.querySelector('.kucoin-setting');
-    const hitbtcSetting = document.querySelector('.hitbtc-setting');
 
     generalSetting.value = generalThreshold;
     kucoinSetting.value = kucoinThreshold;
-    hitbtcSetting.value = hitbtcThreshold;
 
-    if (generalThreshold !== GENERAL_DEFAULT || kucoinThreshold !== KUCOIN_DEFAULT || hitbtcThreshold !== HITBTC_DEFAULT) {
-      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold, hitbtc: hitbtcThreshold });
+    if (generalThreshold !== GENERAL_DEFAULT || kucoinThreshold !== KUCOIN_DEFAULT) {
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold });
     }
 
     function onSettingChange({ target }) {
@@ -741,17 +723,13 @@
         case 'kucoin':
           kucoinThreshold = isNaN(value) ? KUCOIN_DEFAULT : value;
           break;
-        case 'hitbtc':
-          hitbtcThreshold = isNaN(value) ? HITBTC_DEFAULT : value;
-          break;
       }
 
-      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold, hitbtc: hitbtcThreshold });
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold });
     }
 
     generalSetting.addEventListener('change', onSettingChange, false);
     kucoinSetting.addEventListener('change', onSettingChange, false);
-    hitbtcSetting.addEventListener('change', onSettingChange, false);
 
     function getCoinbasePrices() {
       const exchangePrices = CRYPTO.reduce((prices, currency) => {
@@ -873,15 +851,14 @@
       return tooltip;
     }
 
-    function shouldNotify(isKucoin, isHitBTC, percentage) {
+    function shouldNotify(isKucoin, percentage) {
       if (isKucoin) return percentage >= kucoinThreshold;
-      if (isHitBTC) return percentage >= hitbtcThreshold;
 
       return percentage >= generalThreshold;
     }
 
     function getPrices() {
-      fetch('https://cobalt-maxim-205612.appspot.com/crypto?arbitrage=true')
+      fetch('http://localhost:8080/crypto?arbitrage=true')
         .then(response => response.json())
         .then(prices => {
           const notifications = [];
@@ -930,18 +907,14 @@
 
             const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
             const binanceEntry = document.querySelector(`.${currency} .binance a`);
-            const huobiEntry = document.querySelector(`.${currency} .huobi a`);
             const kucoinEntry = document.querySelector(`.${currency} .kucoin a`);
             const krakenEntry = document.querySelector(`.${currency} .kraken a`);
-            const hitbtcEntry = document.querySelector(`.${currency} .hitbtc a`);
 
             [
               bittrexEntry,
               binanceEntry,
-              huobiEntry,
               kucoinEntry,
               krakenEntry,
-              hitbtcEntry
             ].forEach(entry => entry.classList.remove('higher', 'lower'));
 
             const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
@@ -1005,10 +978,6 @@
                   exchangeUrl = `https://www.binance.com/trade.html?symbol=${exchangeName}_BTC`;
                   binanceEntry.classList.add('lower');
                   break;
-                case 'huobi':
-                  exchangeUrl = `https://www.huobi.pro/${legacyName.toLowerCase()}_btc/exchange/`;
-                  huobiEntry.classList.add('lower');
-                  break;
                 case 'kucoin':
                   exchangeUrl = `https://www.kucoin.com/#/trade.pro/${legacyName}-BTC`;
                   kucoinEntry.classList.add('lower');
@@ -1028,9 +997,6 @@
                 case 'binance':
                   binanceEntry.classList.add('higher');
                   break;
-                case 'huobi':
-                  huobiEntry.classList.add('higher');
-                  break;
                 case 'kucoin':
                   kucoinEntry.classList.add('higher');
                   break;
@@ -1048,9 +1014,8 @@
               }
 
               const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
-              const isHitBTC = greatest.buy === 'hitbtc' || greatest.sell == 'hitbtc';
 
-              if (shouldNotify(isKucoin, isHitBTC, percentage)) {
+              if (shouldNotify(isKucoin, percentage)) {
                 notifications.push({ currency, percentage: percentage.toFixed(2) });
               }
             }

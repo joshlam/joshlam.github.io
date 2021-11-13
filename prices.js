@@ -4,7 +4,7 @@ const { CRYPTO, MAX_BACKOFF, MIN_BACKOFF, TIME } = require('./constants');
 const formatDate = require('./date');
 const { sendNotification } = require('./twilio');
 const { checkMarkets, checkQueues } = require('./wallet');
-const websocket = require('./websocket');
+// const websocket = require('./websocket');
 
 const backoff = {};
 let cachedPrices = {};
@@ -97,7 +97,9 @@ function normalize(exchangeName) {
     case 'XXMR': return 'XMR';
     case 'XXRP': return 'XRP';
     case 'XZEC': return 'ZEC';
+    case 'BUSD': return 'USDT';
     case 'USD': return 'USDT';
+    case 'USDC': return 'USDT';
     case 'E': return 'EBTC';
     case 'S': return 'SBTC';
     default: return currency;
@@ -118,14 +120,10 @@ function normalizeExchangeData({
   bittrexWallets,
   binancePrices,
   binanceOrders,
-  binanceWallets,
-  huobiPrices,
-  huobiWallets,
+  // binanceWallets,
   kucoinPrices,
   kucoinWallets,
   krakenPrices,
-  hitbtcPrices,
-  hitbtcWallets
 }) {
   return CRYPTO.reduce((currencies, currency) => {
     const exchangeData = {};
@@ -169,36 +167,16 @@ function normalizeExchangeData({
       Object.assign(exchangeData.binance, { last: binancePrices[currency] });
     }
 
-    if (binanceWallets[currency]) {
-      if (!exchangeData.binance) exchangeData.binance = { marketActive: true };
+    // if (binanceWallets[currency]) {
+    //   if (!exchangeData.binance) exchangeData.binance = { marketActive: true };
 
-      Object.assign(exchangeData.binance, {
-        confirmations: binanceWallets[currency].confirmations,
-        depositsEnabled: binanceWallets[currency].depositsEnabled,
-        withdrawalsEnabled: binanceWallets[currency].withdrawalsEnabled,
-        notice: binanceWallets[currency].notice
-      });
-    }
-
-    if (huobiPrices[currency]) {
-      exchangeData.huobi = {
-        bid: huobiPrices[currency].bid,
-        ask: huobiPrices[currency].ask,
-        last: huobiPrices[currency].bid,
-        marketActive: huobiPrices[currency].marketActive
-      };
-    }
-
-    if (huobiWallets[currency]) {
-      if (!exchangeData.huobi) exchangeData.huobi = {};
-
-      Object.assign(exchangeData.huobi, {
-        confirmations: huobiWallets[currency].confirmations,
-        depositsEnabled: huobiWallets[currency].depositsEnabled,
-        withdrawalsEnabled: huobiWallets[currency].withdrawalsEnabled,
-        notice: huobiWallets[currency].notice
-      });
-    }
+    //   Object.assign(exchangeData.binance, {
+    //     confirmations: binanceWallets[currency].confirmations,
+    //     depositsEnabled: binanceWallets[currency].depositsEnabled,
+    //     withdrawalsEnabled: binanceWallets[currency].withdrawalsEnabled,
+    //     notice: binanceWallets[currency].notice
+    //   });
+    // }
 
     if (kucoinPrices[currency]) {
       exchangeData.kucoin = {
@@ -233,26 +211,6 @@ function normalizeExchangeData({
       };
     }
 
-    if (hitbtcPrices[currency]) {
-      exchangeData.hitbtc = {
-        bid: hitbtcPrices[currency].bid,
-        ask: hitbtcPrices[currency].ask,
-        last: hitbtcPrices[currency].last
-      };
-    }
-
-    if (hitbtcWallets[currency]) {
-      if (!exchangeData.hitbtc) exchangeData.hitbtc = {};
-
-      Object.assign(exchangeData.hitbtc, {
-        confirmations: hitbtcWallets[currency].confirmations,
-        depositsEnabled: hitbtcWallets[currency].depositsEnabled,
-        withdrawalsEnabled: hitbtcWallets[currency].withdrawalsEnabled,
-        marketActive: hitbtcWallets[currency].marketActive,
-        notice: null
-      });
-    }
-
     currencies[currency] = exchangeData;
 
     return currencies;
@@ -275,6 +233,30 @@ function getPrices(diff) {
 
     return prices;
   });
+
+  // https://api.bittrex.com/v3/currencies
+  // [
+  //   {
+  //     "symbol": "string",
+  //     "name": "string",
+  //     "coinType": "string",
+  //     "status": "string",
+  //     "minConfirmations": "integer (int32)",
+  //     "notice": "string",
+  //     "txFee": "number (double)",
+  //     "logoUrl": "string",
+  //     "prohibitedIn": [
+  //       "string"
+  //     ],
+  //     "baseAddress": "string",
+  //     "associatedTermsOfService": [
+  //       "string"
+  //     ],
+  //     "tags": [
+  //       "string"
+  //     ]
+  //   }
+  // ]
 
   const bittrexWalletsPromise = get('https://bittrex.com/api/v2.0/pub/currencies/GetWalletHealth', (statuses, status) => {
     const currency = status.Currency.Currency;
@@ -318,87 +300,17 @@ function getPrices(diff) {
     return prices;
   });
 
-  const binanceWalletsPromise = get('https://www.binance.com/assetWithdraw/getAllAsset.html', (wallets, wallet) => {
-    wallets[normalize(wallet.assetCode)] = {
-      confirmations: Number(wallet.confirmTimes),
-      depositsEnabled: wallet.enableCharge,
-      withdrawalsEnabled: wallet.enableWithdraw,
-      notice: wallet.depositTipStatus ? wallet.depositTipEn : null
-    };
+  // TODO find current binance wallets API
+  // const binanceWalletsPromise = get('https://www.binance.com/assetWithdraw/getAllAsset.html', (wallets, wallet) => {
+  //   wallets[normalize(wallet.assetCode)] = {
+  //     confirmations: Number(wallet.confirmTimes),
+  //     depositsEnabled: wallet.enableCharge,
+  //     withdrawalsEnabled: wallet.enableWithdraw,
+  //     notice: wallet.depositTipStatus ? wallet.depositTipEn : null
+  //   };
 
-    return wallets;
-  });
-
-  const huobiSymbols = [];
-  const huobiPricesPromise = get('https://api.huobi.pro/v1/settings/symbols', (prices, market) => {
-    const isInactive = market.delist && !market['trade-enabled'];
-
-    if (market['quote-currency'] != 'btc' || isInactive) return prices;
-
-    const currency = normalize(market['base-currency']);
-
-    prices[currency] = { marketActive: market['trade-enabled'] };
-
-    huobiSymbols.push({
-      currency,
-      symbol: `${market['base-currency']}${market['quote-currency']}`
-    });
-
-    return prices;
-  }).then(prices => {
-    if (huobiSymbols.length === 0) return prices;
-
-    const wsStore = websocket.init('wss://api.huobi.pro/ws',
-      connection => {
-        huobiSymbols.forEach(({ symbol }) => {
-          connection.send(JSON.stringify({
-            sub: `market.${symbol}.depth.step0`,
-            id: symbol
-          }));
-        });
-      },
-      message => {
-        const symbolToMatch = message.ch.split('.')[1];
-        const currency = huobiSymbols.find(({ symbol }) => {
-          return symbol === symbolToMatch;
-        }).currency;
-
-        const [bid, bidQty] = message.tick.bids[0];
-        const [ask, askQty] = message.tick.asks[0];
-
-        Object.assign(prices[currency], { bid, bidQty, ask, askQty });
-      }
-    );
-
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve(prices);
-
-        try {
-          wsStore.closed = true;
-
-          wsStore.ws.close();
-        } catch (error) {
-          console.log(`socket close error: ${error}`)
-        }
-      }, 2000);
-    });
-  }).catch(error => {
-    console.log(`Error in Huobi price fetch: ${error}`);
-
-    return Promise.resolve({});
-  });
-
-  const huobiWalletsPromise = get('https://api.huobi.pro/v1/settings/currencys?language=en-US', (wallets, wallet) => {
-    wallets[normalize(wallet['display-name'])] = {
-      confirmations: wallet['fast-confirms'],
-      depositsEnabled: wallet['deposit-enabled'],
-      withdrawalsEnabled: wallet['withdraw-enabled'],
-      notice: wallet['deposit-desc'] || wallet['withdraw-desc'] ? `${wallet['deposit-desc']}; ${wallet['withdraw-desc']}` : null
-    };
-
-    return wallets;
-  });
+  //   return wallets;
+  // });
 
   const kucoinPricesPromise = get('https://openapi-v2.kucoin.com/api/v1/market/allTickers').then(({ ticker }) => {
     return ticker.reduce((prices, market) => {
@@ -476,74 +388,34 @@ function getPrices(diff) {
     return Promise.resolve({});
   });
 
-  const hitbtcPricesPromise = get('https://api.hitbtc.com/api/2/public/ticker', (prices, market) => {
-    if (market.symbol.slice(market.symbol.length - 3) !== 'BTC') return prices;
-
-    const currency = market.symbol.split('BTC')[0];
-
-    prices[normalize(currency)] = {
-      bid: Number(market.bid),
-      ask: Number(market.ask),
-      last: Number(market.last)
-    };
-
-    return prices;
-  });
-
-  const hitbtcWalletsPromise = get('https://api.hitbtc.com/api/2/public/currency', (wallets, wallet) => {
-    if (wallet.delisted) return wallets;
-
-    wallets[normalize(wallet.id)] = {
-      confirmations: wallet.payinConfirmations,
-      depositsEnabled: wallet.payinEnabled,
-      withdrawalsEnabled: wallet.payoutEnabled,
-      marketActive: true,
-      notice: null
-    };
-
-    return wallets;
-  });
-
   Promise.all([
     bittrexPricesPromise,
     bittrexWalletsPromise,
     binancePricesPromise,
     binanceOrdersPromise,
-    binanceWalletsPromise,
-    huobiPricesPromise,
-    huobiWalletsPromise,
+    // binanceWalletsPromise,
     kucoinPricesPromise,
     kucoinWalletsPromise,
     krakenPricesPromise,
-    hitbtcPricesPromise,
-    hitbtcWalletsPromise
   ]).then(([
     bittrexPrices,
     bittrexWallets,
     binancePrices,
     binanceOrders,
-    binanceWallets,
-    huobiPrices,
-    huobiWallets,
+    // binanceWallets,
     kucoinPrices,
     kucoinWallets,
     krakenPrices,
-    hitbtcPrices,
-    hitbtcWallets
   ]) => {
     const exchangeData =  {
       bittrexPrices,
       bittrexWallets,
       binancePrices,
       binanceOrders,
-      binanceWallets,
-      huobiPrices,
-      huobiWallets,
+      // binanceWallets,
       kucoinPrices,
       kucoinWallets,
       krakenPrices,
-      hitbtcPrices,
-      hitbtcWallets
     };
 
     cachedPrices = {

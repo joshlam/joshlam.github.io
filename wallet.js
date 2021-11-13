@@ -36,10 +36,8 @@ exports.checkMarkets = function checkMarkets(exchangeData) {
   const notifications = [];
 
   ['bittrexWallets', 'bittrexPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Bittrex', notifications));
-  ['binanceWallets', 'binancePrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
-  ['huobiWallets', 'huobiPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Huobi', notifications));
+  [/*'binanceWallets', */'binancePrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Binance', notifications));
   ['kucoinWallets', 'kucoinPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'Kucoin', notifications));
-  ['hitbtcWallets', 'hitbtcPrices'].forEach(key => checkExchangeData(key, exchangeData[key], 'HitBTC', notifications));
 
   checkExchangeData('krakenPrices', exchangeData.krakenPrices, 'Kraken', notifications);
 
