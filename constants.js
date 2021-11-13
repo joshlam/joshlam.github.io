@@ -6,7 +6,82 @@ const EXCHANGE_ABRV = Object.freeze({
   kraken: 'Kr',
 });
 
-// TODO, distinguish BTC from USD(S) pairs
+// TODO handle coinbase, update APIs
+
+const BINANCE = Object.freeze([
+  'ADA',
+  'BCH',
+  'BNB',
+  'ETH',
+  'LINK',
+  'LTC',
+  'SOL',
+  'UNI',
+  'VET',
+  'XTZ',
+]); 
+
+const USDS_BINANCE = Object.freeze([
+    // USD
+    'AAVE',
+    'ADA',
+    'ALGO',
+    'AMP',
+    'ANKR',
+    'ATOM',
+    'AXS',
+    'BAND',
+    'BAT',
+    'BCH',
+    'BNB',
+    'BTC',
+    'COMP',
+    'CRV',
+    'DAI',
+    'DASH',
+    'DOGE',
+    'EGLD',
+    'ENJ',
+    'EOS',
+    'ETC',
+    'ETH',
+    'FIL',
+    'GRT',
+    'HBAR',
+    'HNT',
+    'ICX',
+    'IOTA',
+    'KNC',
+    'LINK',
+    'LTC',
+    'MANA',
+    'MATIC',
+    'MKR',
+    'NANO',
+    'NEO',
+    'OMG',
+    'ONE',
+    'ONT',
+    'OXT',
+    'PAXG',
+    'QTUM',
+    'REP',
+    'RVN',
+    'SHIB', // BUSD, USDT
+    'SOL',
+    'STORJ',
+    'SUSHI',
+    'UNI',
+    'VET',
+    'VTHO',
+    'WAVES',
+    'XLM',
+    'XTZ',
+    'ZEC',
+    'ZEN',
+    'ZIL',
+    'ZRX'
+])
 
 // TODO ETH pairs
 const BITTREX = Object.freeze([
@@ -131,79 +206,6 @@ const BITTREX = Object.freeze([
   'ZRX'
 ]);
 
-const BINANCE = Object.freeze([
-  // BTC
-  'ADA',
-  'BCH',
-  'BNB',
-  'ETH',
-  'LINK',
-  'LTC',
-  'SOL',
-  'UNI',
-  'VET',
-  'XTZ',
-  // USD
-  'AAVE',
-  'ADA',
-  'ALGO',
-  'AMP',
-  'ANKR',
-  'ATOM',
-  'AXS',
-  'BAND',
-  'BAT',
-  'BCH',
-  'BNB',
-  'BTC',
-  'COMP',
-  'CRV',
-  'DAI',
-  'DASH',
-  'DOGE',
-  'EGLD',
-  'ENJ',
-  'EOS',
-  'ETC',
-  'ETH',
-  'FIL',
-  'GRT',
-  'HBAR',
-  'HNT',
-  'ICX',
-  'IOTA',
-  'KNC',
-  'LINK',
-  'LTC',
-  'MANA',
-  'MATIC',
-  'MKR',
-  'NANO',
-  'NEO',
-  'OMG',
-  'ONE',
-  'ONT',
-  'OXT',
-  'PAXG',
-  'QTUM',
-  'REP',
-  'RVN',
-  'SHIB', // BUSD, USDT
-  'SOL',
-  'STORJ',
-  'SUSHI',
-  'UNI',
-  'VET',
-  'VTHO',
-  'WAVES',
-  'XLM',
-  'XTZ',
-  'ZEC',
-  'ZEN',
-  'ZIL',
-  'ZRX'
-]); 
-
 // TODO ETH pairs
 const COINBASE = Object.freeze([
   // BTC
@@ -274,58 +276,60 @@ const COINBASE = Object.freeze([
   'YFI',
   'ZEC',
   'ZEN',
-  'ZRX',
-  // USD
-  'ACH',
-  'AGLD',
-  'AMP',
-  'ARPA',
-  'ASM',
-  'AUCTION',
-  'BADGER',
-  'BOND',
-  'CHZ',
-  'CLV',
-  'COTI',
-  'CRO',
-  'CVC',
-  'DDX',
-  'DNT',
-  'FARM',
-  'FET',
-  'FX',
-  'GNT', // USDC
-  'GTC',
-  'GYEN',
-  'JASMY',
-  'KEEP',
-  'KRL',
-  'LCX',
-  'LOOM',
-  'LPT',
-  'MASK',
-  'MLN',
-  'OXT',
-  'PERP',
-  'PLA',
-  'POLY',
-  'QNT',
-  'QUICK',
-  'RAI',
-  'RARI',
-  'RGT',
-  'RLY',
-  'SHIB',
-  'SUKU',
-  'TRAC',
-  'TRIBE',
-  'UST',
-  'WCFG',
-  'YFII'
+  'ZRX'
+])
+
+const USDS_COINBASE = Object.freeze([
+    // USD
+    'ACH',
+    'AGLD',
+    'AMP',
+    'ARPA',
+    'ASM',
+    'AUCTION',
+    'BADGER',
+    'BOND',
+    'CHZ',
+    'CLV',
+    'COTI',
+    'CRO',
+    'CVC',
+    'DDX',
+    'DNT',
+    'FARM',
+    'FET',
+    'FX',
+    'GNT', // USDC
+    'GTC',
+    'GYEN',
+    'JASMY',
+    'KEEP',
+    'KRL',
+    'LCX',
+    'LOOM',
+    'LPT',
+    'MASK',
+    'MLN',
+    'OXT',
+    'PERP',
+    'PLA',
+    'POLY',
+    'QNT',
+    'QUICK',
+    'RAI',
+    'RARI',
+    'RGT',
+    'RLY',
+    'SHIB',
+    'SUKU',
+    'TRAC',
+    'TRIBE',
+    'UST',
+    'WCFG',
+    'YFII'
 ])
 
 const FTX = Object.freeze([
-  // BTC
   'BCH',
   'DOGE',
   'ETH',
@@ -336,22 +340,80 @@ const FTX = Object.freeze([
   'SUSHI',
   'UNI',
   'YFI',
-  // USD
-  'AAVE',
-  'BAT',
-  'BTC',
-  'CUSDT',
-  'DAI',
-  'GRT',
-  'KSHIB', // 1000 SHIB
-  'MKR',
-  'PAXG',
-  'SHIB',
-  'TRX',
 ])
 
+const USDS_FTX = Object.freeze([
+    'AAVE',
+    'BAT',
+    'BTC',
+    'CUSDT',
+    'DAI',
+    'GRT',
+    'KSHIB', // 1000 SHIB
+    'MKR',
+    'PAXG',
+    'SHIB',
+    'TRX',
+])
+
+// TODO ETH pairs
+const KRAKEN = Object.freeze([
+  'AAVE',
+  'ADA',
+  'ALGO',
+  'ANT',
+  'ATOM',
+  'BAL',
+  'BAT',
+  'BCH',
+  'COMP',
+  'CRV',
+  'DASH',
+  'DOGE',
+  'DOT',
+  'ENJ',
+  'EOS',
+  'ETC',
+  'ETH',
+  'FIL',
+  'FLOW',
+  'GNO',
+  'ICX',
+  'KAVA',
+  'KEEP',
+  'KNC',
+  'KSM',
+  'LINK',
+  'LSK',
+  'LTC',
+  'MANA',
+  'MATIC',
+  'MLN',
+  'NANO',
+  'OCEAN',
+  'OMG',
+  'OXT',
+  'PAXG',
+  'QTUM',
+  'REP',
+  'REPV2',
+  'SC',
+  'SNX',
+  'SOL',
+  'STORJ',
+  'TBTC',
+  'TRX',
+  'UNI',
+  'WAVES',
+  'XLM',
+  'XMR',
+  'XTZ',
+  'YFI',
+  'ZEC'
+]);
+
 const KUCOIN = Object.freeze([
-  // KUCOIN PLUS (BTC)
+  // KUCOIN PLUS
   'ADA',
   'ALGO',
   'ATOM',
@@ -386,7 +448,7 @@ const KUCOIN = Object.freeze([
   'XMR',
   'XRP',
   'XTZ',
-  // MAIN (BTC)
+  // MAIN
   '2CRZ',
   'AAVE',
   'ABBC',
@@ -656,70 +718,27 @@ const KUCOIN = Object.freeze([
   'ZEC',
   'ZIL',
   'ZRX',
-  // USD(S)
-  'SHIB' // USDT
 ]);
 
-// TODO ETH pairs
-const KRAKEN = Object.freeze([
-  'AAVE',
-  'ADA',
-  'ALGO',
-  'ANT',
-  'ATOM',
-  'BAL',
-  'BAT',
-  'BCH',
-  'COMP',
-  'CRV',
-  'DASH',
-  'DOGE',
-  'DOT',
-  'ENJ',
-  'EOS',
-  'ETC',
-  'ETH',
-  'FIL',
-  'FLOW',
-  'GNO',
-  'ICX',
-  'KAVA',
-  'KEEP',
-  'KNC',
-  'KSM',
-  'LINK',
-  'LSK',
-  'LTC',
-  'MANA',
-  'MATIC',
-  'MLN',
-  'NANO',
-  'OCEAN',
-  'OMG',
-  'OXT',
-  'PAXG',
-  'QTUM',
-  'REP',
-  'REPV2',
-  'SC',
-  'SNX',
-  'SOL',
-  'STORJ',
-  'TBTC',
-  'TRX',
-  'UNI',
-  'WAVES',
-  'XLM',
-  'XMR',
-  'XTZ',
-  'YFI',
-  'ZEC'
-]);
+const USDS_KUCOIN = Object.freeze([
+  'SHIB' // USDT
+])
 
 const EXCHANGE_COINS = new Set();
 const SHARED_COINS = new Set();
 
-[BITTREX, BINANCE, KUCOIN, KRAKEN].forEach(coins => {
+[
+  BINANCE, 
+  BITTREX, 
+  COINBASE, 
+  FTX,
+  KRAKEN, 
+  KUCOIN,
+  USDS_BINANCE, 
+  USDS_COINBASE, 
+  USDS_FTX, 
+  USDS_KUCOIN,
+].forEach(coins => {
   coins.forEach(coin => {
     if (EXCHANGE_COINS.has(coin)) return void SHARED_COINS.add(coin);
 
@@ -742,10 +761,16 @@ const MIN_BACKOFF = 2 * SECOND;
 exports.CRYPTO = CRYPTO;
 exports.EXCHANGES = EXCHANGES;
 exports.EXCHANGE_ABRV = EXCHANGE_ABRV;
-exports.BITTREX = BITTREX;
 exports.BINANCE = BINANCE;
-exports.KUCOIN = KUCOIN;
+exports.BITTREX = BITTREX;
+exports.COINBASE = COINBASE;
+exports.FTX = FTX;
 exports.KRAKEN = KRAKEN;
+exports.KUCOIN = KUCOIN;
+exports.USDS_BINANCE = USDS_BINANCE;
+exports.USDS_COINBASE = USDS_COINBASE
+exports.USDS_FTX = USDS_FTX;
+exports.USDS_KUCOIN = USDS_KUCOIN;
 exports.TIME = TIME;
 exports.MAX_BACKOFF = MAX_BACKOFF;
 exports.MIN_BACKOFF = MIN_BACKOFF;
