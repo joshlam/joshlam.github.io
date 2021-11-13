@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Crypto</title>
+  <style>
+    a:visited {
+      color: blue;
+    }
+
+    .status {
+      text-align: center;
+    }
+
+    .higher {
+      color: #ff0066 !important;
+    }
+
+    .lower {
+      color: green !important;
+    }
+
+    .levelTwo,
+    .outdated,
+    .warning
+    {
+      color: red !important;
+    }
+
+    .gain {
+      color: rgb(130, 214, 84) !important;
+    }
+
+    .loss {
+      color: rgb(237, 87, 72) !important;
+    }
+
+    .levelOne {
+      color: orange !important;
+    }
+
+    .levelThree {
+      color: #ff66ff !important;
+    }
+
+    .last-updated {
+      margin-top: 5px;
+    }
+
+    .column {
+      display: inline-block
+    }
+
+    .notification-settings {
+      display: inline-block;
+      margin-bottom: 10px;
+      margin-left: 10px;
+      margin-top: 5px;
+      vertical-align: top;
+    }
+
+    .notification-header {
+      margin-bottom: 10px;
+      margin-top: 0;
+    }
+
+    .tooltip {
+      border-bottom: 1px dotted black;
+      display: inline-block;
+      position: relative;
+    }
+
+    .tooltip .tooltiptext {
+      color: #fff;
+      background-color: black;
+      border-radius: 6px;
+      padding: 5px 0;
+      position: absolute;
+      text-align: center;
+      visibility: hidden;
+      width: 120px;
+      z-index: 1;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <span class="warning">WARNING:</span> Make sure to check the status of the wallet on each exchange before trading. Deposits or withdrawals may be suspended. Also be sure to check the number of buy orders on the exchange you are moving assets into. There may only be a few orders for the price that is being shown. Prices can be delayed, so click the price to get the latest.
+
+    <a target="_blank" href="https://bittrex.com/Balance">Bittrex wallets</a>
+    <a target="_blank" href="https://bittrex.com/Status">Bittrex wallet statuses</a>
+    <a target="_blank" href="https://www.binance.com/userCenter/depositWithdraw.html">Binance wallets</a>
+    <a target="_blank" href="https://www.huobi.pro/finance/">Huobi wallets</a>
+    <a target="_blank" href="https://www.kucoin.com/#/user/account/dashboard">Kucoin wallets</a>
+    <a target="_blank" href="https://www.kraken.com/u/trade">Kraken wallets</a>
+    <a target="_blank" href="https://hitbtc.com/account">HitBTC wallets</a>
+
+  </div>
+
+  <div class="row">
+    <div class="column">
+      <div class="last-updated">
+        <b>Prices last updated</b>: <span class="time"></span>
+      </div>
+
+      <div class="gdax">
+        <ul class="usd-prices">
+        </ul>
+      </div>
+    </div>
+
+    <div class="notification-settings">
+      <h4 class="notification-header">Notification Settings</h1>
+      <label for="general">General</label>
+      <input type="number" name="general" class="general-setting setting">
+      <label for="kucoin">Kucoin</label>
+      <input type="number" name="kucoin" class="kucoin-setting setting">
+      <label for="hitbtc">HitBTC</label>
+      <input type="number" name="hitbtc" class="hitbtc-setting setting">
+    </div>
+  </div>
+
+  <table class="crypto">
+    <tr>
+      <th>Currency</th>
+      <th>Change</th>
+      <th>Bittrex</th>
+      <th>Status</th>
+      <th>Binance</th>
+      <th>Status</th>
+      <th>Coinbase</th>
+      <th>Difference</th>
+      <th>Huobi</th>
+      <th>Status</th>
+      <th>Kucoin</th>
+      <th>Status</th>
+      <th>Kraken</th>
+      <th>HitBTC</th>
+      <th>Status</th>
+      <th>Difference</th>
+    </tr>
+  </table>
+  <div class="to-do">
+    <h2>TO DO:</h2>
+    <ul>
+      <li>Sorting</li>
+      <li>Include coinbase in difference calculation</li>
+      <li>Volume of orders for Bittrex</li>
+      <li>Optomize notification rules</li>
+      <li>Optomize color scheme and appearance</li>
+      <li>Use Binance wallet status for determining notifications</li>
+      <li>Add wallets</li>
+      <li>Add ETH market diffs</li>
+      <li>Add USDT market diffs</li>
+      <li>Automatically generate list of coins shared between exchanges</li>
+      <li>Extract out JS from HTML page</li>
+      <li>Compute diff with min(ask) - max(bid) instead of last prices</li>
+      <li>Show actionable diffs and last price diffs</li>
+      <li>Add links to individual withdraw / deposit pages</li>
+      <li>Configurable subscriptions</li>
+      <li>Page with all graphs</li>
+      <li>Add alerts on hour change (or more granular)</li>
+      <li>Add HADAX, Bithumb</li>
+      <li>Toggle which exchanges are used in diffing</li>
+      <li>Toggle price in Bitcoin or price in satoshis</li>
+      <li>Update coins script</li>
+    </ul>
+  </div>
+
+  <script>
+    let notificationsEnabled = Notification.permission === 'granted';
+
+    if (!notificationsEnabled) {
+      const permissionCallback = result => {
+        if (result === 'denied') {
+          console.log('Permission wasn\'t granted. Allow a retry.');
+
+          return;
+        }
+
+        if (result === 'default') {
+          console.log('The permission request was dismissed.');
+
+          return;
+        }
+
+        notificationsEnabled = true;
+      };
+
+      const request = Notification.requestPermission(permissionCallback);
+
+      if (request && 'then' in request) request.then(permissionCallback);
+    }
+
+    const COINBASE = ['BTC', 'BCH', 'ETH', 'ETC', 'LTC', 'ZRX', 'XRP', 'XLM'];
+
+    const usdPrices = document.querySelector('.usd-prices');
+
+    COINBASE.forEach(currency => {
+      const row = document.createElement('li');
+
+      row.classList.add(`${currency}-USD`);
+
+      row.innerHTML = `
+        <li>
+          <a target="_blank" href="https://pro.coinbase.com/trade/${currency}-USD">${currency}</a>: <span class="price"></span>
+        </li>
+      `;
+
+      usdPrices.appendChild(row);
+    });
+
+    const CRYPTO = [
+      'ADA',
+      'ADX',
+      'ARDR',
+      'ARK',
+      'ATOM',
+      'BAT',
+      'BCH',
+      'BCPT',
+      'BNT',
+      'BSV',
+      'BTG',
+      'BTT',
+      'CVC',
+      'DASH',
+      'DCR',
+      'DNT',
+      'ENG',
+      'ENJ',
+      'ETC',
+      'ETH',
+      'GRS',
+      'GTO',
+      'KMD',
+      'LOOM',
+      'LRC',
+      'LSK',
+      'LTC',
+      'LUN',
+      'MANA',
+      'MCO',
+      'MFT',
+      'MTL',
+      'NAV',
+      'NEO',
+      'NXS',
+      'OMG',
+      'POLY',
+      'POWR',
+      'PIVX',
+      'QTUM',
+      'RCN',
+      'REP',
+      'RLC',
+      'RVN',
+      'SALT',
+      'SC',
+      'SNT',
+      'STEEM',
+      'STORJ',
+      'STORM',
+      'STRAT',
+      'SYS',
+      'TRX',
+      'TUSD',
+      'VIA',
+      'VIB',
+      'WAVES',
+      'XEM',
+      'XLM',
+      'XMR',
+      'XRP',
+      'XVG',
+      'XZC',
+      'ZEC',
+      'ZEN',
+      'ZRX',
+      'APPC',
+      'AST',
+      'BTM',
+      'BFT',
+      'BLZ',
+      'BTS',
+      'CHAT',
+      'CMT',
+      'DGB',
+      'DGD',
+      'GNT',
+      'ICX',
+      'IOTA',
+      'LBA',
+      'LINK',
+      'NAS',
+      'NCASH',
+      'OCN',
+      'OST',
+      'PRO',
+      'REN',
+      'SRN',
+      'THETA',
+      'TNB',
+      'TNT',
+      'WAN',
+      'WPR',
+      'WTC',
+      'XTZ',
+      'MLN',
+      'ABT',
+      'ACT',
+      'AION',
+      'AMB',
+      'ARN',
+      'BCD',
+      'BRD',
+      'CBC',
+      'DAT',
+      'DBC',
+      'DENT',
+      'DOCK',
+      'DTA',
+      'EDR',
+      'ELA',
+      'ELF',
+      'EOS',
+      'EVX',
+      'FET',
+      'GAS',
+      'GVT',
+      'HC',
+      'INS',
+      'IOST',
+      'IOTX',
+      'ITC',
+      'KEY',
+      'KNC',
+      'LEND',
+      'MTH',
+      'MTN',
+      'NANO',
+      'NEBL',
+      'NULS',
+      'ONT',
+      'PAY',
+      'PHX',
+      'PPT',
+      'QKC',
+      'QLC',
+      'QSP',
+      'RDN',
+      'REQ',
+      'SNC',
+      'SNM',
+      'SOLVE',
+      'STK',
+      'UKG',
+      'UTK',
+      'VET',
+      'WAX',
+      'ZIL',
+      'ACAT',
+      'AE',
+      'AEON',
+      'AGI',
+      'AMP',
+      'ANT',
+      'AXPR',
+      'BCN',
+      'BOS',
+      'BQX',
+      'CAT',
+      'CDT',
+      'CHSB',
+      'CMCT',
+      'CND',
+      'COV',
+      'CRPT',
+      'DADI',
+      'DATA',
+      'DATX',
+      'DCT',
+      'DLT',
+      'DOGE',
+      'EBTC',
+      'EDG',
+      'EDO',
+      'EKO',
+      'EMC',
+      'FOTA',
+      'FUEL',
+      'FUN',
+      'GAME',
+      'GNO',
+      'GO',
+      'GUP',
+      'ICN',
+      'IHT',
+      'KICK',
+      'MAN',
+      'MITH',
+      'MTX',
+      'NGC',
+      'NXC',
+      'NXT',
+      'OAX',
+      'POE',
+      'POLL',
+      'PPC',
+      'PTOY',
+      'R',
+      'SBD',
+      'SBTC',
+      'SMT',
+      'SNGLS',
+      'SOC',
+      'SPC',
+      'SWFTC',
+      'SWT',
+      'TEL',
+      'TIME',
+      'TIO',
+      'VIBE',
+      'WINGS',
+      'XDN',
+      'ZPT'
+    ];
+
+    const COINMARKETCAP = {
+      ABT: 'arcblock',
+      ACAT: 'alphacat',
+      ACT: 'achain',
+      ADA: 'cardano',
+      ADX: 'adx-net',
+      AE: 'aeternity',
+      AEON: 'aeon',
+      AGI: 'singularitynet',
+      AION: 'aion',
+      AMB: 'amber',
+      AMP: 'synereo',
+      ANT: 'aragon',
+      APPC: 'appcoins',
+      ARDR: 'ardor',
+      ARK: 'ark',
+      ARN: 'aeron',
+      AST: 'airswap',
+      ATOM: 'cosmos',
+      AXPR: 'axpire',
+      BAT: 'basic-attention-token',
+      BCD: 'bitcoin-diamond',
+      BCH: 'bitcoin-cash',
+      BCN: 'bytecoin-bcn',
+      BCPT: 'blockmason',
+      BFT: 'bnktothefuture',
+      BLZ: 'bluzelle',
+      BNT: 'bancor',
+      BOS: 'boscoin',
+      BRD: 'bread',
+      BSV: 'bitcoin-sv',
+      BQX: 'ethos',
+      BTG: 'bitcoin-gold',
+      BTM: 'bytom',
+      BTS: 'bitshares',
+      BTT: 'bittorrent',
+      CAT: 'bitclave',
+      CBC: 'cashbet-coin',
+      CDT: 'blox',
+      CHAT: 'chatcoin',
+      CHSB: 'swissborg',
+      CLOAK: 'cloakcoin',
+      CMCT: 'crowd-machine',
+      CMT: 'cybermiles',
+      CND: 'cindicator',
+      COV: 'covesting',
+      CRPT: 'crypterium',
+      CVC: 'civic',
+      DADI: 'dadi',
+      DASH: 'dash',
+      DAT: 'datum',
+      DATA: 'streamr-datacoin',
+      DATX: 'datx',
+      DBC: 'deepbrain-chain',
+      DCR: 'decred',
+      DCT: 'decent',
+      DENT: 'dent',
+      DGB: 'digibyte',
+      DGD: 'digixdao',
+      DLT: 'agrello-delta',
+      DNT: 'district0x',
+      DOCK: 'dock',
+      DOGE: 'dogecoin',
+      DTA: 'data',
+      EBTC: 'ebtcnew',
+      EDG: 'edgeless',
+      EDO: 'eidoo',
+      EDR: 'endor-protocol',
+      EKO: 'echolink',
+      ELA: 'elastos',
+      ELF: 'aelf',
+      EMC: 'emercoin',
+      ENG: 'enigma-project',
+      ENJ: 'enjin-coin',
+      EOS: 'eos',
+      ETC: 'ethereum-classic',
+      EVX: 'everex',
+      ETH: 'ethereum',
+      FET: 'fetch',
+      FOTA: 'fortuna',
+      FUEL: 'etherparty',
+      FUN: 'funfair',
+      GAME: 'gamecredits',
+      GAS: 'gas',
+      GNO: 'gnosis-gno',
+      GNT: 'golem-network-tokens',
+      GO: 'gochain',
+      GRS: 'groestlcoin',
+      GTO: 'gifto',
+      GUP: 'guppy',
+      GVT: 'genesis-vision',
+      HC: 'hypercash',
+      ICN: 'iconomi',
+      ICX: 'icon',
+      IHT: 'iht-real-estate-protocol',
+      INS: 'ins-ecosystem',
+      IOST: 'iostoken',
+      IOTA: 'iota',
+      IOTX: 'iotex',
+      ITC: 'iot-chain',
+      KEY: 'selfkey',
+      KICK: 'kickico',
+      KMD: 'komodo',
+      KNC: 'kyber-network',
+      LBA: 'libra-credit',
+      LEND: 'ethlend',
+      LINK: 'chainlink',
+      LOOM: 'loom-network',
+      LRC: 'loopring',
+      LSK: 'lisk',
+      LTC: 'litecoin',
+      LUN: 'lunyr',
+      MAN: 'matrix-ai-network',
+      MANA: 'decentraland',
+      MCO: 'monaco',
+      MFT: 'mainframe',
+      MITH: 'mithril',
+      MLN: 'melon',
+      MOD: 'modum',
+      MTH: 'monetha',
+      MTL: 'metal',
+      MTN: 'medical-chain',
+      MTX: 'matryx',
+      NANO: 'nano',
+      NAS: 'nebulas-token',
+      NAV: 'nav-coin',
+      NCASH: 'nucleus-vision',
+      NEBL: 'neblio',
+      NEO: 'neo',
+      NGC: 'naga',
+      NULS: 'nuls',
+      NXC: 'nexium',
+      NXS: 'nexus',
+      NXT: 'nxt',
+      OAX: 'oax',
+      OCN: 'odyssey',
+      OMG: 'omisego',
+      ONG: 'ontology-gas',
+      ONT: 'ontology',
+      OST: 'ost',
+      PAY: 'tenx',
+      PHX: 'red-pulse',
+      PIVX: 'pivx',
+      POE: 'poet',
+      POLL: 'clearpoll',
+      POLY: 'polymath-network',
+      POWR: 'power-ledger',
+      PPC: 'peercoin',
+      PPT: 'populous',
+      PRO: 'propy',
+      PTOY: 'patientory',
+      QKC: 'quarkchain',
+      QLC: 'qlink',
+      QSP: 'quantstamp',
+      QTUM: 'qtum',
+      R: 'revain',
+      RCN: 'ripio-credit-network',
+      RDN: 'raiden-network-token',
+      REN: 'ren',
+      REP: 'augur',
+      REQ: 'request-network',
+      RLC: 'rlc',
+      RVN: 'ravencoin',
+      SALT: 'salt',
+      SBD: 'steem-dollars',
+      SBTC: 'super-bitcoin',
+      SC: 'siacoin',
+      SMT: 'smartmesh',
+      SNC: 'suncontract',
+      SNGLS: 'singulardtv',
+      SNM: 'sonm',
+      SNT: 'status',
+      SOC: 'all-sports',
+      SOLVE: 'solve',
+      SPC: 'spacechain',
+      SRN: 'sirin-labs-token',
+      STEEM: 'steem',
+      STK: 'stk',
+      STORJ: 'storj',
+      STORM: 'storm',
+      STRAT: 'stratis',
+      SUB: 'substratum',
+      SWFTC: 'swftcoin',
+      SWT: 'swarm-city',
+      SYS: 'syscoin',
+      TEL: 'telcoin',
+      THETA: 'theta-token',
+      TIME: 'chronobank',
+      TIO: 'trade-token',
+      TNB: 'time-new-bank',
+      TNT: 'tierion',
+      TRX: 'tron',
+      TUSD: 'trueusd',
+      UKG: 'unikoin-gold',
+      UTK: 'utrust',
+      VET: 'vechain',
+      VIA: 'viacoin',
+      VIB: 'viberate',
+      VIBE: 'vibe',
+      WAN: 'wanchain',
+      WAVES: 'waves',
+      WAX: 'wax',
+      WINGS: 'wings',
+      WPR: 'wepower',
+      WTC: 'walton',
+      XDN: 'digitalnote',
+      XEM: 'nem',
+      XLM: 'stellar',
+      XMR: 'monero',
+      XRP: 'ripple',
+      XTZ: 'tezos',
+      XVG: 'verge',
+      XZC: 'zcoin',
+      ZEC: 'zcash',
+      ZEN: 'zencash',
+      ZIL: 'zilliqa',
+      ZPT: 'zeepin',
+      ZRX: '0x'
+    };
+
+    const DENORMALIZE = { BCH: 'BCHABC', BSV: 'BCHSV' };
+    const TO_LEGACY = { NANO: 'XRB', PRO: 'PROPY' };
+
+    const EXCHANGES = ['bittrex', 'binance', 'huobi', 'kucoin', 'kraken', 'hitbtc'];
+
+    const table = document.querySelector('.crypto');
+
+    CRYPTO.forEach(currency => {
+      const row = document.createElement('tr');
+
+      row.classList.add(currency);
+
+      const exchangeName = DENORMALIZE[currency] ? DENORMALIZE[currency] : currency;
+      const legacyName = TO_LEGACY[currency] ? TO_LEGACY[currency] : currency;
+
+      row.innerHTML = `
+        <td class="currency"><a target="_blank" href="https://coinmarketcap.com/currencies/${COINMARKETCAP[currency] || currency}">${currency}</a></td>
+        <td class="change"></td>
+        <td class="bittrex"><a target="_blank" href="https://bittrex.com/Market/Index?MarketName=BTC-${currency}"></a></td>
+        <td class="bittrex-status status"></td>
+        <td class="binance"><a target="_blank" href="https://www.binance.com/trade.html?symbol=${exchangeName}_BTC"></a></td>
+        <td class="binance-status status"></td>
+        <td class="coinbase"><a target="_blank" href="https://pro.coinbase.com/trade/${currency}-BTC"></a></td>
+        <td class="difference"></td>
+        <td class="huobi"><a target="_blank" href="https://www.huobi.pro/${legacyName.toLowerCase()}_btc/exchange/"></a></td>
+        <td class="huobi-status status"></td>
+        <td class="kucoin"><a target="_blank" href="https://www.kucoin.com/#/trade.pro/${legacyName}-BTC"></a></td>
+        <td class="kucoin-status status"></td>
+        <td class="kraken"><a target="_blank" href="https://trade.kraken.com/markets/kraken/${legacyName.toLowerCase()}/btc"</a></td>
+        <td class="hitbtc"><a target="_blank" href="https://hitbtc.com/exchange/${currency}-to-BTC"</a></td>
+        <td class="hitbtc-status status"></td>
+        <td class="difference-all"><a target="_blank"></a></td>
+      `;
+
+      table.appendChild(row);
+    });
+
+    const MILLISECOND = 1;
+    const SECOND = 1000 * MILLISECOND;
+    const MINUTE = 60 * SECOND;
+    const HOUR = 60 * MINUTE;
+
+    function getParameterByName(name) {
+      const regex = new RegExp(`[?&]${name.replace(/[\[\]]/g, "\\$&")}(=([^&#]*)|&|#|$)`);
+      const results = regex.exec(window.location.href);
+
+      if (!results) return NaN;
+      if (!results[2]) return NaN;
+
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    function updateQueryParams({ general, kucoin, hitbtc }) {
+      const base = document.location.href.match('crypto.html') ? 'crypto.html' : 'crypto';
+
+      history.pushState({}, '', `${base}?general=${general}&kucoin=${kucoin}&hitbtc=${hitbtc}`);
+    }
+
+    const GENERAL_DEFAULT = 1;
+    const KUCOIN_DEFAULT = 3;
+    const HITBTC_DEFAULT = 3;
+
+    const generalParameter = getParameterByName('general');
+    const kucoinParameter = getParameterByName('kucoin');
+    const hitbtcParameter = getParameterByName('hitbtc');
+
+    let generalThreshold = isNaN(generalParameter) ? GENERAL_DEFAULT : generalParameter;
+    let kucoinThreshold =  isNaN(kucoinParameter) ? KUCOIN_DEFAULT : kucoinParameter;
+    let hitbtcThreshold =  isNaN(hitbtcParameter) ? HITBTC_DEFAULT : hitbtcParameter;
+
+    const generalSetting = document.querySelector('.general-setting');
+    const kucoinSetting = document.querySelector('.kucoin-setting');
+    const hitbtcSetting = document.querySelector('.hitbtc-setting');
+
+    generalSetting.value = generalThreshold;
+    kucoinSetting.value = kucoinThreshold;
+    hitbtcSetting.value = hitbtcThreshold;
+
+    if (generalThreshold !== GENERAL_DEFAULT || kucoinThreshold !== KUCOIN_DEFAULT || hitbtcThreshold !== HITBTC_DEFAULT) {
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold, hitbtc: hitbtcThreshold });
+    }
+
+    function onSettingChange({ target }) {
+      const value = target.value !== 0 && Number(target.value) === 0 ? NaN : target.value;
+
+      switch (target.name) {
+        case 'general':
+          generalThreshold = isNaN(value) ? GENERAL_DEFAULT : value;
+          break;
+        case 'kucoin':
+          kucoinThreshold = isNaN(value) ? KUCOIN_DEFAULT : value;
+          break;
+        case 'hitbtc':
+          hitbtcThreshold = isNaN(value) ? HITBTC_DEFAULT : value;
+          break;
+      }
+
+      updateQueryParams({ general: generalThreshold, kucoin: kucoinThreshold, hitbtc: hitbtcThreshold });
+    }
+
+    generalSetting.addEventListener('change', onSettingChange, false);
+    kucoinSetting.addEventListener('change', onSettingChange, false);
+    hitbtcSetting.addEventListener('change', onSettingChange, false);
+
+    function getCoinbasePrices() {
+      const exchangePrices = CRYPTO.reduce((prices, currency) => {
+        prices[currency] = {};
+
+        return prices;
+      }, {});
+
+      exchangePrices.BTC = {};
+
+      let backoff = 2 * COINBASE.length;
+
+      Promise.all(
+        COINBASE.reduce((promises, currency) => {
+          promises.push(
+            fetch(`https://api.gdax.com/products/${currency}-USD/ticker`)
+              .then(response => response.json())
+              .then(ticker => {
+                const price = Number(Number(ticker.price).toFixed(2));
+                const entry = document.querySelector(`.${currency}-USD .price`);
+
+                if (!price) return void entry.classList.add('warning');
+
+                backoff--;
+
+                entry.classList.remove('warning');
+                entry.textContent = `$${price}`;
+
+                if (currency !== 'BTC') return;
+
+                exchangePrices[currency].coinbase = price;
+              })
+          )
+
+          if (currency === 'BTC') return promises;
+
+          promises.push(
+            fetch(`https://api.gdax.com/products/${currency}-BTC/ticker`)
+              .then(response => response.json())
+              .then(ticker => {
+                const price = Number(ticker.price);
+                const entry = document.querySelector(`.${currency} .coinbase a`);
+
+                if (!price) return void entry.classList.add('warning');
+
+                backoff--;
+
+                entry.classList.remove('warning');
+                entry.textContent = price;
+                exchangePrices[currency].coinbase = price;
+              })
+          )
+
+          return promises
+        }, [])
+      ).then(() => {
+        const btcPrice = exchangePrices.BTC.coinbase;
+
+        if (btcPrice) document.title = `$${btcPrice}`;
+
+        setTimeout(getCoinbasePrices, Math.max(1, backoff / 2) * SECOND);
+      }).catch(() => {
+        setTimeout(getCoinbasePrices, 2 * SECOND);
+      });
+    }
+
+    function getChanges() {
+      const third = Math.floor(CRYPTO.length / 3);
+      const firstThird = CRYPTO.slice(0, third).join();
+      const secondThird = CRYPTO.slice(third, 2 * third).join();
+      const thirdThird = CRYPTO.slice(2 * third).join();
+
+      return Promise.all([
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${firstThird}&tsyms=BTC`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => prices),
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${secondThird}&tsyms=BTC`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => prices),
+        fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${thirdThird}&tsyms=BTC`)
+          .then(response => response.json())
+          .then(({ RAW: prices }) => prices)
+      ]).then(([firstThirdPrices, secondThirdPrices, thirdThirdPrices]) => {
+        const prices = Object.assign({}, firstThirdPrices, secondThirdPrices, thirdThirdPrices);
+
+        CRYPTO.forEach(currency => {
+          const price = prices[currency];
+
+          if (!price) return;
+
+          const change = price.BTC.CHANGEPCT24HOUR;
+          const changeEntry = document.querySelector(`.${currency} .change`);
+
+          changeEntry.classList.remove('gain', 'loss');
+          changeEntry.classList.add(change > 0 ? 'gain' : 'loss');
+
+          changeEntry.textContent = `${change.toFixed(2)}%`;
+        });
+
+        setTimeout(getChanges, 2 * SECOND);
+      }).catch(() => {
+        setTimeout(getChanges, 3 * SECOND);
+      });
+    }
+
+    function createTooltip(toggle, text) {
+      const tooltip = document.createElement('div');
+
+      tooltip.classList.add('tooltip');
+      tooltip.textContent = toggle;
+
+      const tooltipText = document.createElement('span');
+
+      tooltipText.classList.add('tooltiptext');
+      tooltipText.textContent = text;
+
+      tooltip.appendChild(tooltipText);
+
+      return tooltip;
+    }
+
+    function shouldNotify(isKucoin, isHitBTC, percentage) {
+      if (isKucoin) return percentage >= kucoinThreshold;
+      if (isHitBTC) return percentage >= hitbtcThreshold;
+
+      return percentage >= generalThreshold;
+    }
+
+    function getPrices() {
+      fetch('https://cobalt-maxim-205612.appspot.com/crypto?arbitrage=true')
+        .then(response => response.json())
+        .then(prices => {
+          const notifications = [];
+
+          CRYPTO.forEach(currency => {
+            EXCHANGES.forEach(exchange => {
+              const market = prices[currency][exchange];
+
+              if (!market) return;
+
+              const priceEntry = document.querySelector(`.${currency} .${exchange} a`);
+              const price = market.last;
+
+              priceEntry.innerHTML = '';
+
+              priceEntry.appendChild(
+                createTooltip(
+                  price,
+                  `
+                    Bid: ${market.bid},
+                    Ask: ${market.ask},
+                    Confirmations: ${market.confirmations}
+                  `
+                )
+              );
+
+              const statusEntry = document.querySelector(`.${currency} .${exchange}-status`);
+
+              if (!statusEntry) return;
+
+              statusEntry.innerHTML = '';
+
+              if (market.marketActive && market.depositsEnabled && market.withdrawalsEnabled) return;
+
+              statusEntry.appendChild(
+                createTooltip(
+                  '!!!',
+                  `
+                    Deposits: ${market.depositsEnabled},
+                    Withdrawals: ${market.withdrawalsEnabled},
+                    Notice: ${market.notice}
+                  `
+                )
+              );
+            });
+
+            const bittrexEntry = document.querySelector(`.${currency} .bittrex a`);
+            const binanceEntry = document.querySelector(`.${currency} .binance a`);
+            const huobiEntry = document.querySelector(`.${currency} .huobi a`);
+            const kucoinEntry = document.querySelector(`.${currency} .kucoin a`);
+            const krakenEntry = document.querySelector(`.${currency} .kraken a`);
+            const hitbtcEntry = document.querySelector(`.${currency} .hitbtc a`);
+
+            [
+              bittrexEntry,
+              binanceEntry,
+              huobiEntry,
+              kucoinEntry,
+              krakenEntry,
+              hitbtcEntry
+            ].forEach(entry => entry.classList.remove('higher', 'lower'));
+
+            const exchangeDifferences = EXCHANGES.reduce((differences, buyFrom) => {
+              const buyMarket = prices[currency][buyFrom];
+
+              if (!buyMarket || !buyMarket.withdrawalsEnabled || !buyMarket.ask) return differences;
+
+              EXCHANGES.forEach(sellAt => {
+                if (buyFrom === sellAt) return;
+
+                const sellMarket = prices[currency][sellAt];
+
+                if (!sellMarket || !sellMarket.depositsEnabled || !sellMarket.bid) return;
+
+                differences.push({
+                  buy: buyFrom,
+                  sell: sellAt,
+                  bid: sellMarket.bid,
+                  ask: buyMarket.ask,
+                  difference: sellMarket.bid - buyMarket.ask
+                });
+              });
+
+              return differences;
+            }, []).sort((a, b) => {
+              if (a.difference < b.difference) return -1;
+              if (a.difference > b.difference) return 1;
+
+              return 0;
+            });
+
+            if (exchangeDifferences.length > 0) {
+              const differenceEntry = document.querySelector(`.${currency} .difference-all a`);
+              const greatest = exchangeDifferences[exchangeDifferences.length - 1];
+              const percentage = greatest.difference / greatest.bid * 100;
+
+              differenceEntry.classList.remove('levelOne', 'levelTwo', 'levelThree');
+              differenceEntry.innerHTML = '';
+
+              differenceEntry.appendChild(
+                createTooltip(
+                  `${percentage.toFixed(2)}%`,
+                  `
+                    Buy from: ${greatest.buy},
+                    Sell at: ${greatest.sell}
+                  `
+                )
+              );
+
+              const exchangeName = DENORMALIZE[currency] ? DENORMALIZE[currency] : currency;
+              const legacyName = TO_LEGACY[currency] ? TO_LEGACY[currency] : currency;
+
+              let exchangeUrl;
+
+              switch (greatest.buy) {
+                case 'bittrex':
+                  exchangeUrl = `https://bittrex.com/Market/Index?MarketName=BTC-${exchangeName}`;
+                  bittrexEntry.classList.add('lower');
+                  break;
+                case 'binance':
+                  exchangeUrl = `https://www.binance.com/trade.html?symbol=${exchangeName}_BTC`;
+                  binanceEntry.classList.add('lower');
+                  break;
+                case 'huobi':
+                  exchangeUrl = `https://www.huobi.pro/${legacyName.toLowerCase()}_btc/exchange/`;
+                  huobiEntry.classList.add('lower');
+                  break;
+                case 'kucoin':
+                  exchangeUrl = `https://www.kucoin.com/#/trade.pro/${legacyName}-BTC`;
+                  kucoinEntry.classList.add('lower');
+                  break;
+                case 'kraken':
+                  exchangeUrl = 'https://www.kraken.com/u/trade';
+                  krakenEntry.classList.add('lower');
+                  break;
+              }
+
+              differenceEntry.href = exchangeUrl;
+
+              switch (greatest.sell) {
+                case 'bittrex':
+                  bittrexEntry.classList.add('higher');
+                  break;
+                case 'binance':
+                  binanceEntry.classList.add('higher');
+                  break;
+                case 'huobi':
+                  huobiEntry.classList.add('higher');
+                  break;
+                case 'kucoin':
+                  kucoinEntry.classList.add('higher');
+                  break;
+                case 'kraken':
+                  krakenEntry.classList.add('higher');
+                  break;
+              }
+
+              if (percentage > 4.5) {
+                differenceEntry.classList.add('levelThree');
+              } else if (percentage > 3) {
+                differenceEntry.classList.add('levelTwo');
+              } else if (percentage > 1) {
+                differenceEntry.classList.add('levelOne');
+              }
+
+              const isKucoin = greatest.buy === 'kucoin' || greatest.sell == 'kucoin';
+              const isHitBTC = greatest.buy === 'hitbtc' || greatest.sell == 'hitbtc';
+
+              if (shouldNotify(isKucoin, isHitBTC, percentage)) {
+                notifications.push({ currency, percentage: percentage.toFixed(2) });
+              }
+            }
+
+            const bittrex = prices[currency].bittrex;
+            const binance = prices[currency].binance;
+
+            if (!bittrex || !binance) return;
+            if (!bittrex.bid || !bittrex.ask) return;
+            if (!binance.bid || !binance.ask) return;
+
+            const differences = {
+              binance: bittrex.bid - binance.ask,
+              bittrex: binance.bid - bittrex.ask
+            };
+            let difference;
+            let min;
+
+            if (differences.binance > differences.bittrex) {
+              bittrexEntry.classList.add('higher');
+              binanceEntry.classList.add('lower');
+
+              difference = differences.binance;
+              min = binance.ask;
+            } else {
+              bittrexEntry.classList.add('lower');
+              binanceEntry.classList.add('higher');
+
+              difference = differences.bittrex;
+              min = bittrex.ask;
+            }
+
+            const entry = document.querySelector(`.${currency} .difference`);
+            const percentage = difference / min * 100;
+
+            entry.textContent = `${percentage.toFixed(2)}%`;
+            entry.classList.remove('levelOne', 'levelTwo', 'levelThree');
+
+            if (percentage > 4.5) {
+              entry.classList.add('levelThree');
+            } else if (percentage > 3) {
+              entry.classList.add('levelTwo');
+            } else if (percentage > 1) {
+              entry.classList.add('levelOne');
+            }
+          });
+
+          if (notificationsEnabled && notifications.length > 0) {
+            notifications.sort((a, b) => (b.percentage - a.percentage));
+
+            new Notification(
+              'Price Alerts',
+              {
+                body: notifications.map(
+                  ({ currency, percentage }) => `${currency}: ${percentage}%`
+                ).join('; ')
+              }
+            );
+          }
+
+          const lastUpdatedEntry = document.querySelector('.last-updated .time');
+          const lastUpdatedTime = new Date(prices.lastUpdated);
+
+          lastUpdatedEntry.textContent = lastUpdatedTime;
+
+          if (Date.now() - lastUpdatedTime > MINUTE) {
+            lastUpdatedEntry.classList.add('outdated');
+          } else {
+            lastUpdatedEntry.classList.remove('outdated');
+          }
+
+          setTimeout(getPrices, SECOND);
+        }).catch(error => {
+          console.log(error);
+
+          setTimeout(getPrices, 2 * SECOND);
+        })
+    }
+
+    getCoinbasePrices();
+    getChanges();
+    getPrices();
+  </script>
+</body>
+</html>
